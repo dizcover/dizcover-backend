@@ -1,0 +1,50 @@
+{
+    "etiquetas-genero": [
+        "Urbano",
+        "Rock",
+        "Pop",
+        "Electrónica",
+        "Reggae",
+        "Salsa",
+        "Bachata",
+        "Jazz",
+        "Blues",
+        "Country",
+        "Folk",
+        "Metal",
+        "Indie",
+        "Hip-hop/Rap",
+        "Clásica"
+    ],
+    "etiquetas-ambiente": [
+        "Discos",
+        "Bar",
+        "Res-bar",
+        "Fonda",
+        "Rooftop",
+        "Pub",
+        "Lounge",
+        "Club Privado",
+        "Karaoke",
+        "Terraza",
+        "Beach Club",
+        "Sports Bar",
+        "Bodega/Vinoteca"
+    ],
+    "etiquetas-especiales": [
+        "Tomar",
+        "Plantranqui",
+        "Fiesta",
+        "LGTBI",
+        "After +3am (Amanecederos)",
+        "Internacional",
+        "Bar Swinger",
+        "Chivas",
+        "Música en Vivo",
+        "Temático",
+        "Exclusivo VIP",
+        "Al Aire Libre",
+        "Cena Show",
+        "Happy Hour"
+    ]
+}
