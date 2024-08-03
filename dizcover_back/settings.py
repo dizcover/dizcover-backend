@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # AGREGANDO APPS
     'eventos',
+    'establecimiento',
     # AGREGANDO DJANGO REST FRAMEWORK
     'rest_framework',
 ]
