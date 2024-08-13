@@ -6,3 +6,5 @@ from .models import Evento
 class EventoViewSet(viewsets.ModelViewSet):
     queryset = Evento.objects.all()
     serializer_class = EventoSerializer
+
+    
