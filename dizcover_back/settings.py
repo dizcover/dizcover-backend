@@ -38,7 +38,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # AGREGANDO APPS
-    'api_eventos',
+    'eventos',
+    'establecimiento',
+    'fiestero',
+    'recomendacion',
+    'discotequero',
     # AGREGANDO DJANGO REST FRAMEWORK
     'rest_framework',
 ]
