@@ -40,6 +40,9 @@ INSTALLED_APPS = [
     # AGREGANDO APPS
     'eventos',
     'establecimiento',
+    'fiestero',
+    'recomendacion',
+    'discotequero',
     # AGREGANDO DJANGO REST FRAMEWORK
     'rest_framework',
 ]
