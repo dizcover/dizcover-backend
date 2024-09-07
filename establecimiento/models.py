@@ -7,7 +7,7 @@ class Establecimiento(models.Model):
     telefono = models.CharField(max_length=100)
     email = models.EmailField()
     descripcion = models.TextField()
-    # imagen = models.ImageField(upload_to='establecimientos', null=True, blank=True)
+    imagen = models.CharField(max_length=100, null=True)
 
     def __str__(self):
         return self.nombre
