@@ -11,12 +11,12 @@ class FavoritoViewSet(viewsets.ModelViewSet):
     queryset = Favorito.objects.all()
     serializer_class = FavoritotoSerializer
 
-    def create(self, request, *args, **kwargs):
-        print(request)
-        usuario = request.user.fiestero
-        establecimiento = request.data.get('establecimiento')
+    # def create(self, request, *args, **kwargs):
+    #     print(request)
+    #     usuario = request.user.fiestero
+    #     establecimiento = request.data.get('establecimiento')
 
-        if Favorito.objects.filter(fiestero=usuario, establecimiento=establecimiento).exists():
-            return Response({'error': 'Ya existe el favorito'}, status=400)
+    #     if Favorito.objects.filter(fiestero=usuario, establecimiento=establecimiento).exists():
+    #         return Response({'error': 'Ya existe el favorito'}, status=400)
         
-        return super().create(request, *args, **kwargs)
+    #     return super().create(request, *args, **kwargs)

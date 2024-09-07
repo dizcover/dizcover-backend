@@ -20,7 +20,12 @@ class Favorito(models.Model):
         Esta función devuelve una representación en cadena de un objeto Favorito. en el cual se muestra cual es el establecimiento favorito.
         """
 
-        return f'Favorito - {self.establecimiento.nombre}'
+        return f'{self.fiestero.nombre_usuario} - {self.establecimiento.nombre}'
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['fiestero', 'establecimiento'], name='unique_fiestero_establecimiento')
+        ]
 
 
 
