@@ -1,31 +1,47 @@
 from django.db import models
 
-# Create your models here.
 class Favorito(models.Model):
     """
-    Creamos la clase Favorito con los campos que queremos que tenga la tabla en la base de datos.
-    lo relacionamos con la tabla Establecimiento mediante una clave foránea.
+    La clase Favorito representa la relación entre un fiestero (usuario) y un establecimiento marcado como favorito.
 
-    on_delete=models.CASCADE: indica que si se borra un establecimiento, se borran todos los favoritos que lo tengan.
-    related_name='favoritos': indica que desde un establecimiento se puede acceder a todos los favoritos que tiene.
-
-
-    POR HACER: implementar la relación con el usuario que ha marcado el establecimiento como favorito.
+    Campos:
+        - fiestero (ForeignKey): Referencia al usuario que marca el establecimiento como favorito.
+        - establecimiento (ForeignKey): Referencia al establecimiento que es marcado como favorito.
+    
+    Relaciones:
+        - La relación con Establecimiento se define mediante una clave foránea, con el comportamiento on_delete=models.CASCADE
+          para eliminar automáticamente los favoritos si se elimina el establecimiento.
+        - related_name='favoritos': Permite que un establecimiento tenga acceso a los favoritos que lo incluyen.
+    
+    Restricciones:
+        - Se establece una restricción de unicidad entre 'fiestero' y 'establecimiento' para evitar duplicados,
+          de forma que un fiestero no pueda marcar un mismo establecimiento como favorito más de una vez.
     """
+
     fiestero = models.ForeignKey("Fiestero", on_delete=models.CASCADE, null=True)
     establecimiento = models.ForeignKey('establecimiento.Establecimiento', on_delete=models.CASCADE, related_name='favoritos')
 
     def __str__(self):
         """
-        Esta función devuelve una representación en cadena de un objeto Favorito. en el cual se muestra cual es el establecimiento favorito.
-        """
+        Método especial que define la representación en cadena de un objeto Favorito.
 
+        Devuelve una cadena en el formato 'nombre_usuario - nombre_establecimiento', útil para identificación
+        rápida del favorito.
+        """
         return f'{self.fiestero.nombre_usuario} - {self.establecimiento.nombre}'
-    
+
     class Meta:
+        """
+        Meta clase que contiene configuraciones adicionales para el modelo Favorito. Estas restricciones se ven más que nada desde el panel del administrador
+
+        Restricciones:
+            - UniqueConstraint: Establece que la combinación de 'fiestero' y 'establecimiento' debe ser única.
+              Esta restricción garantiza que un mismo usuario no pueda marcar el mismo establecimiento como favorito más de una vez.
+        """
         constraints = [
             models.UniqueConstraint(fields=['fiestero', 'establecimiento'], name='unique_fiestero_establecimiento')
         ]
+
 
 
 
@@ -37,19 +53,12 @@ class Fiestero(models.Model):
     correo = models.EmailField()
     nombre_usuario = models.CharField(max_length=100)
     contraseña = models.CharField(max_length=100)
-    
     foto_perfil = models.CharField(max_length=100)
-
     nombre_completo = models.CharField(max_length=100)
     fecha_nacimiento = models.DateField()
     fecha_registro = models.DateField()
-
-    # Seria mejor solo un campo para el numero de identificacion y otro para el tipo??
     num_identificación = models.CharField(max_length=100)
     pasaporte = models.CharField(max_length=100)
-
-    # indentidad_sexo = models.CharField(max_length=100)
-    # id_etiquetas
 
     def __str__(self):
         return self.nombre_usuario
