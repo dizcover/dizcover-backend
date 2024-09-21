@@ -43,9 +43,12 @@ INSTALLED_APPS = [
     'fiestero',
     'recomendacion',
     'discotequero',
+    'autenticacion',
     # AGREGANDO DJANGO REST FRAMEWORK
     'rest_framework',
 ]
+# Cambiando el modelo de usuario por defecto
+AUTH_USER_MODEL = 'autenticacion.Users'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

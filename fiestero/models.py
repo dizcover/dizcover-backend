@@ -1,4 +1,5 @@
 from django.db import models
+from autenticacion.models import Users
 
 class Favorito(models.Model):
     """
@@ -28,7 +29,7 @@ class Favorito(models.Model):
         Devuelve una cadena en el formato 'nombre_usuario - nombre_establecimiento', útil para identificación
         rápida del favorito.
         """
-        return f'{self.fiestero.nombre_usuario} - {self.establecimiento.nombre}'
+        return f'{self.fiestero.user.nombre_usuario} - {self.establecimiento.nombre}'
 
     class Meta:
         """
@@ -46,19 +47,12 @@ class Favorito(models.Model):
 
 
 class Fiestero(models.Model):
-    """
-    Creamos la clase Fiestero con los campos que queremos que tenga la tabla en la base de datos.
-    """
-    
-    correo = models.EmailField()
-    nombre_usuario = models.CharField(max_length=100)
-    contraseña = models.CharField(max_length=100)
-    foto_perfil = models.CharField(max_length=100)
-    nombre_completo = models.CharField(max_length=100)
-    fecha_nacimiento = models.DateField()
-    fecha_registro = models.DateField()
-    num_identificación = models.CharField(max_length=100)
-    pasaporte = models.CharField(max_length=100)
+    user = models.OneToOneField(Users, on_delete=models.CASCADE, related_name='fiestero')
+    # Campos específicos de Fiestero
+    identidad_sexo = models.CharField(max_length=20)
+    num_identificacion = models.CharField(max_length=20)
+    pasaporte = models.CharField(max_length=20, blank=True, null=True)
+
 
     def __str__(self):
-        return self.nombre_usuario
+        return self.user.nombre_usuario
