@@ -17,12 +17,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.documentation import include_docs_urls
+from .views import home
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api_eventos/', include('eventos.urls')),
-    path('api_establecimientos/', include('establecimiento.urls')),
-    path('api_fiestero/', include('fiestero.urls')),
     path('docs/', include_docs_urls(title='Dizcover API Documentation')),
+    path('api/eventos/', include('eventos.urls')),
+    path('api/establecimientos/', include('establecimiento.urls')),
+    path('api/fiestero/', include('fiestero.urls')),  
+    path('', home),  # Ruta para la página de inicio en la raíz
 ]
+
