@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticación con Google</title>
+</head>
+<body>
+    {% load socialaccount %}
+    <h2>Google login</h2>
+    <a href="{% provider_login_url 'google' %}?next=/api_autenticacion/login">Login con Google</a>
+
+
+    {% if user.is_authenticated %}
+        <p>Usuario autenticado: {{ user.nombre_usuario }}</p>
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
+    {% endif %}
+</body>
+</html>
