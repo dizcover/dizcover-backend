@@ -21,6 +21,7 @@ from rest_framework.documentation import include_docs_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api_discotequero/', include('discotequero.urls')),
     path('api_eventos/', include('eventos.urls')),
     path('api_establecimientos/', include('establecimiento.urls')),
     path('api_fiestero/', include('fiestero.urls')),
