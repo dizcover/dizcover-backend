@@ -21,9 +21,9 @@ from rest_framework.documentation import include_docs_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api_discotequero/', include('discotequero.urls')),
-    path('api_eventos/', include('eventos.urls')),
-    path('api_establecimientos/', include('establecimiento.urls')),
-    path('api_fiestero/', include('fiestero.urls')),
+    path('api/discotequero/', include('discotequero.urls')),
+    path('api/evento/', include('eventos.urls')),
+    path('api/establecimiento/', include('establecimiento.urls')),
+    path('api/fiestero/', include('fiestero.urls')),
     path('docs/', include_docs_urls(title='Dizcover API Documentation')),
 ]
