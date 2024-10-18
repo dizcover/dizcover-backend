@@ -21,8 +21,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     )
     fecha_registro = models.DateTimeField(gettext_lazy("fecha_registro"), auto_now_add=True)
 
-    
-    
     is_staff = models.BooleanField(
         gettext_lazy("staff status"),
         default=False,
