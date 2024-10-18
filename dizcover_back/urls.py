@@ -16,12 +16,13 @@ from rest_framework import permissions
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api_eventos/', include('eventos.urls')),
-    path('api_establecimientos/', include('establecimiento.urls')),
-    path('api_fiestero/', include('fiestero.urls')),
+    path('api/evento/', include('eventos.urls')),
+    path('api/discotequero/', include('discotequero.urls')),
+    path('api/establecimiento/', include('establecimiento.urls')),
+    path('api/fiestero/', include('fiestero.urls')),
+    path('docs/', include_docs_urls(title='Dizcover API Documentation')),
 
     # path('docs/', include_docs_urls(title='Dizcover API Documentation')),
     path('api_autenticacion/', include('autenticacion.urls')), #Para la autenticacion
     path('accounts/', include('allauth.urls')), #Para la autenticacion con google
-
 ]
