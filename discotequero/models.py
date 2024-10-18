@@ -9,3 +9,6 @@ class Discotequero(models.Model):
     NIT = models.CharField(max_length=20)
     NIT_verificado = models.BooleanField(default=False)
     digito_verificacion = models.CharField(max_length=1)
+
+    def __str__(self):
+        return f'{self.user.nombre_usuario} - {self.nombre_empresarial}'
