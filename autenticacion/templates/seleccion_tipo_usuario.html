@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Tipo de Usuario</title>
+    <style>
+        .form-section {
+            display: none;
+        }
+    </style>
+    <script>
+        function showForm(type) {
+            // Ocultar ambos formularios al inicio
+            document.getElementById("fiesteroForm").style.display = 'none';
+            document.getElementById("discotequeroForm").style.display = 'none';
+
+            // Mostrar el formulario correspondiente
+            if (type === 'fiestero') {
+                document.getElementById("fiesteroForm").style.display = 'block';
+            } else if (type === 'discotequero') {
+                document.getElementById("discotequeroForm").style.display = 'block';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h1>Seleccionar Tipo de Usuario</h1>
+
+    <button onclick="showForm('fiestero')">Fiestero</button>
+    <button onclick="showForm('discotequero')">Discotequero</button>
+    <p>el id es: {{ data.user_id }}</p>
+    <!-- Formulario para Fiestero -->
+    <div id="fiesteroForm" class="form-section">
+        <h2>Formulario Fiestero</h2>
+        
+        <form method="POST" action="http://localhost:8000/api_autenticacion/seleccion-tipo-usuario/">
+            <input type="hidden"  id="user_id" name="user_id" value="{{ data.user_id }}">
+            <input type="hidden" name="tipo_usuario" value="fiestero">
+
+            <label for="identidad_sexo">Identidad de Género:</label>
+            <input type="text" id="identidad_sexo" name="identidad_sexo" maxlength="20">
+            <br>
+
+            <label for="identificacion">Número de Identificación:</label>
+            <input type="text" id="identificacion" name="identificacion" maxlength="20">
+            <br>
+
+            <label for="passaporte">Pasaporte (Opcional):</label>
+            <input type="text" id="passaporte" name="passaporte" maxlength="20">
+            <br>
+
+            <button type="submit">Enviar Fiestero</button>
+        </form>
+    </div>
+
+    <!-- Formulario para Discotequero -->
+    <div id="discotequeroForm" class="form-section">
+        <h2>Formulario Discotequero</h2>
+        <form method="POST" action="http://localhost:8000/api_autenticacion/seleccion-tipo-usuario/">
+            <input type="hidden" id="user_id" name="user_id" value="{{ data.user_id }}">
+            <input type="hidden" name="tipo_usuario" value="discotequero">
+
+            <label for="nombre_empresarial">Nombre Empresarial:</label>
+            <input type="text" id="nombre_empresarial" name="nombre_empresarial" maxlength="100">
+            <br>
+
+            <label for="nit">NIT:</label>
+            <input type="text" id="nit" name="nit" maxlength="20" required>
+            <br>
+
+            <label for="digito_verificacion">Dígito de Verificación:</label>
+            <input type="text" id="digito_verificacion" name="digito_verificacion_nit" maxlength="1">
+            <br>
+
+            <label for="NIT_verificado">NIT Verificado:</label>
+            <input type="checkbox" id="NIT_verificado" name="NIT_verificado" value="true">
+            <br>
+
+            <button type="submit">Enviar Discotequero</button>
+        </form>
+    </div>
+
+</body>
+
+</html>

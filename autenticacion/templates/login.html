@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticación con Google</title>
+</head>
+<body>
+    {% load socialaccount %}
+    <h2>Google login</h2>
+    <a href="{% provider_login_url 'google' %}?next=/api_autenticacion/login">Login con Google</a>
+
+    {% if user.is_authenticated %}
+        <h2>Información del usuario</h2>
+        <p>id: {{ user.pk }}</p>
+        <p>Usuario autenticado: {{ user.nombre_usuario }}</p>
+        <p>Nombre completo: {{ user.nombre_completo }}</p>
+        <p>Email: {{ user.email }}</p>
+        <img src="{{ user.foto_perfil }}" alt="Foto de perfil">
+        <p>El usuario es {{ data.tipo_usuario }}</p>
+        <a href="{% url 'logout' %}">Cerrar sesión</a>
+
+        <h2>Tokens</h2>
+        <p>Token de acceso: {{ data.access_token }}</p>
+        <p>Token de actualización: {{ data.refresh_token }}</p>
+    {% endif %}
+</body>
+</html>
+
