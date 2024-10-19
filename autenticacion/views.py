@@ -24,42 +24,42 @@ def login_view(request):
         user = request.user
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        tipo = 'INDEFENIDO'
-        if Fiestero.objects.filter(user=user).exists():
-            tipo= 'fiestero'
-            print(tipo)
-        elif Discotequero.objects.filter(user=user).exists():
-            tipo = 'discotequero'
-            print(tipo)
+
         data = {
             'user_id': user.pk,
             'email': user.email,
             'nombre_completo': user.nombre_completo,
             'foto_perfil': user.foto_perfil,
             'refresh_token': str(refresh),
-            'access_token': access_token,
-            'tipo_usuario': tipo   
+            'access_token': access_token, 
+            'tipo_usuario': 'INDEFINIDO'
         }
 
-        # Llamada a la API de verificación de tipo de usuario
-        api_url = f"http://localhost:8000/api_autenticacion/verificacion-tipo-usuario/{user.pk}/"
-        headers = {
-            'Authorization': f'Bearer {access_token}'
-        }
+        if Fiestero.objects.filter(user=user).exists():
+            tipo= 'fiestero'
+            data['tipo_usuario'] = tipo
+        elif Discotequero.objects.filter(user=user).exists():
+            tipo = 'discotequero'
+            data['tipo_usuario'] = tipo
+        else:
+            api_url = f"http://localhost:8000/api/autenticacion/verificacion-tipo-usuario/{user.pk}/"
+            headers = {
+                'Authorization': f'Bearer {access_token}'
+            }
 
-        try:
-            response = requests.get(api_url, headers=headers)
-            response_data = response.json()
+            try:
+                response = requests.get(api_url, headers=headers)
+                response_data = response.json()
 
-            # Verificar la respuesta de la API
-            if response.status_code == 200:
-                if not response_data['value']:  # Si no tiene tipo de usuario asignado
-                    return render(request, 'seleccion_tipo_usuario.html', {'data': data})  # Redirigir a la página de selección
+                # Verificar la respuesta de la API
+                if response.status_code == 200:
+                    if not response_data['value']:  # Si no tiene tipo de usuario asignado
+                        return render(request, 'seleccion_tipo_usuario.html', {'data': data})  # Redirigir a la página de selección
 
-        except requests.exceptions.RequestException as e:
-            # Manejar errores de la solicitud
-            print(f"Error al llamar a la API de verificación: {e}")
-            return render(request, 'error.html', {'message': 'Error en la verificación del tipo de usuario'})
+            except requests.exceptions.RequestException as e:
+                # Manejar errores de la solicitud
+                print(f"Error al llamar a la API de verificación: {e}")
+                return render(request, 'error.html', {'message': 'Error en la verificación del tipo de usuario'})
 
         return render(request, 'login.html', {'data': data})
 
@@ -99,8 +99,6 @@ def type_verification_user(request, pk_user):
                 }, status=status.HTTP_200_OK)
 
     except Users.DoesNotExist:
-
-
         return Response({
             'message': 'Usuario no encontrado o no existe',
             }, status.HTTP_404_NOT_FOUND)
