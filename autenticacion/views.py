@@ -1,11 +1,6 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.shortcuts import render
-
-# def login_view(request):
-#     return render(request, 'login.html')
-
-
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,6 +11,7 @@ from rest_framework import status
 import requests
 from fiestero.serializer import FiesteroSerializer
 from discotequero.serializer import DiscotequeroSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
 
@@ -160,4 +156,3 @@ def seleccion_tipo_usuario(request):
         return Response({
             'message': 'Usuario no encontrado o no existe'
             }, status=status.HTTP_404_NOT_FOUND)
-

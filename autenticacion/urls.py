@@ -7,7 +7,6 @@ urlpatterns = [
 
 
     # API
-
     path('verificacion-tipo-usuario/<int:pk_user>/', views.type_verification_user, name='type_verification_user'),
     path('seleccion-tipo-usuario/', views.seleccion_tipo_usuario, name='seleccion_tipo_usuario'),
 
