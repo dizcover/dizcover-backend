@@ -36,7 +36,7 @@
     <div id="fiesteroForm" class="form-section">
         <h2>Formulario Fiestero</h2>
         
-        <form method="POST" action="http://localhost:8000/api_autenticacion/seleccion-tipo-usuario/">
+        <form method="POST" action="http://localhost:8000/api/autenticacion/seleccion-tipo-usuario/">
             <input type="hidden"  id="user_id" name="user_id" value="{{ data.user_id }}">
             <input type="hidden" name="tipo_usuario" value="fiestero">
 
@@ -59,7 +59,7 @@
     <!-- Formulario para Discotequero -->
     <div id="discotequeroForm" class="form-section">
         <h2>Formulario Discotequero</h2>
-        <form method="POST" action="http://localhost:8000/api_autenticacion/seleccion-tipo-usuario/">
+        <form method="POST" action="http://localhost:8000/api/autenticacion/seleccion-tipo-usuario/">
             <input type="hidden" id="user_id" name="user_id" value="{{ data.user_id }}">
             <input type="hidden" name="tipo_usuario" value="discotequero">
 
