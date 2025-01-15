@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 class Establecimiento(models.Model):
     """
@@ -11,7 +12,6 @@ class Establecimiento(models.Model):
         - telefono (CharField): Número de teléfono de contacto del establecimiento.
         - email (EmailField): Correo electrónico de contacto del establecimiento.
         - descripcion (TextField): Descripción detallada del establecimiento.
-        - imagen (CharField): URL o ruta de la imagen representativa del establecimiento (puede ser nulo).
         - ciudad (CharField): Ciudad donde se encuentra el establecimiento.
         - municipio (CharField): Municipio donde se encuentra el establecimiento.
         - id_coordenada (ForeignKey): Referencia a las coordenadas geográficas del establecimiento.
@@ -37,7 +37,7 @@ class Establecimiento(models.Model):
     telefono = models.CharField(max_length=100, null=True)
     email = models.EmailField(null=True)
     descripcion = models.TextField(null=True)
-    imagen = models.CharField(max_length=100, null=True)
+    # imagen = models.FileField(upload_to='establecimientos/images/', null=True)
     departamento = models.CharField(max_length=100, null=True)
     municipio = models.CharField(max_length=100, null=True)
     id_coordenada = models.ForeignKey('Coordenada', on_delete=models.CASCADE, null=True)
@@ -52,6 +52,32 @@ class Establecimiento(models.Model):
             models.UniqueConstraint(fields=['nombre', 'direccion', 'departamento', 'municipio'], name='unique_nombre_direccion_departamento_municipio'),
             models.UniqueConstraint(fields=['nombre', 'id_discotequero'], name='unique_nombre_discotequero') # No puede haber dos establecimientos con el mismo nombre y discotequero (Evitar que un discotequero tenga dos establecimientos con el mismo nombre)
         ]
+
+
+def upload_to_establecimiento(instance, filename):
+    """
+    Genera una ruta dinámica para almacenar las imágenes en base al nombre del establecimiento.
+    """
+    nombre_establecimiento = slugify(instance.establecimiento.nombre) if instance.establecimiento and instance.establecimiento.nombre else "sin_nombre"
+    return f'establecimientos/images/{nombre_establecimiento}/{filename}'
+
+class ImagenEstablecimiento(models.Model):
+    """
+    Modelo que representa una imagen o mas asociada a un establecimiento.
+
+    Atributos:
+        establecimiento (ForeignKey): Referencia al establecimiento al que pertenece la imagen.
+        imagen (FileField): Archivo de imagen asociado al establecimiento.
+
+    Métodos:
+        __str__: Retorna una representación en cadena del objeto, mostrando el nombre del establecimiento.
+    """
+    establecimiento = models.ForeignKey('Establecimiento', on_delete=models.CASCADE, related_name='imagenes')
+    imagen = models.FileField(upload_to=upload_to_establecimiento, null=True)
+
+    def __str__(self):
+        return f"Imagen de {self.establecimiento.nombre}"
+
 
 class Coordenada(models.Model):
     latitud = models.FloatField()

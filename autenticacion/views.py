@@ -79,7 +79,8 @@ def type_verification_user(request, pk_user):
         if Fiestero.objects.filter(user=user).exists():
             return Response({
                 'message': 'El usuario es Fiestero',
-                'value': True
+                'value': True,
+                'id': Fiestero.objects.get(user=user).pk
                 
                 }, status=status.HTTP_200_OK)
         elif Discotequero.objects.filter(user=user).exists():

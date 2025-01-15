@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Establecimiento, Coordenada, Horario
+from .models import Establecimiento, Coordenada, Horario, ImagenEstablecimiento
 
 class EstablecimientoSerializer(serializers.ModelSerializer):
     """
@@ -8,6 +8,11 @@ class EstablecimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Establecimiento
         fields = '__all__'
+
+class ImagenEstablecimientoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ImagenEstablecimiento
+        fields = ['id', 'establecimiento', 'imagen']  
 
 class CoordenadaSerializer(serializers.ModelSerializer):
     """

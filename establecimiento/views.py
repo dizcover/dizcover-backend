@@ -5,9 +5,9 @@ from rest_framework.response import Response
 
 from .models import Establecimiento
 from discotequero.models import Discotequero
-from establecimiento.models import Establecimiento
-
-from .serializer import EstablecimientoSerializer
+from establecimiento.models import Establecimiento, ImagenEstablecimiento
+from rest_framework.views import APIView
+from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer
 
 class EstablecimientoViewSet(viewsets.ModelViewSet):
     """
@@ -23,12 +23,13 @@ class EstablecimientoViewSet(viewsets.ModelViewSet):
         - La condicion para que un establecimiento sea duplicado es que tenga el mismo nombre y direccion en la misma ciudad. (Se debe mejorar la validacion)
         """
 
-        # Obtenemos los datos para validar si ya existe un establecimiento con los mismos datos
+        # Obtenemos los datos para validar si ya existe un establecimiento con los mismos datos (Con estos atributos que son esecniales para la creación de un establecimiento)
         id_discotequero = request.data.get("id_discotequero")
         nombre = request.data.get("nombre")
         direccion = request.data.get("direccion")
         departamento = request.data.get("departamento")
         municipio = request.data.get("municipio")
+    
 
         datosIncompletos = not id_discotequero or not nombre or not direccion or not departamento or not municipio
         if datosIncompletos:
@@ -116,3 +117,67 @@ class EstablecimientoViewSet(viewsets.ModelViewSet):
 
         # Si no pasa nada, actualizamos la entidad
         return super().update(request, *args, **kwargs)
+    
+
+# API de imagenes de establecimientos
+class ImagenesEstablecimientoView(APIView):
+    # Recibe el id del establecimiento al que se le asociará la imagen
+    def post(self, request, pk):
+        """
+        Crea una nueva imagen asociada a un establecimiento.
+        """
+        try:
+            establecimiento = get_object_or_404(Establecimiento, id=pk)
+            imagenes = [request.data.get(f'imagen{i}') for i in range(1, 11)]  # Suponiendo un máximo de 10 imágenes
+
+            if not any(imagenes):
+                return Response(
+                    {'detail': 'Debe proporcionar al menos una imagen.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else: 
+                for imagen in imagenes:
+                    if imagen:
+                        ImagenEstablecimiento.objects.create(establecimiento=establecimiento, imagen=imagen)
+                
+            return Response(
+                {'detail': 'Imagen/es creada exitosamente.'},
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    def get(self, request, pk):
+        """
+        Obtiene las imágenes asociadas a un establecimiento.
+        """
+        try:
+            establecimiento = get_object_or_404(Establecimiento, id=pk)
+            imagenes = ImagenEstablecimiento.objects.filter(establecimiento=establecimiento)
+            serializer = ImagenEstablecimientoSerializer(imagenes, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, pk_imagen):
+        """
+        Elimina una imagen asociada a un establecimiento.
+        """
+        try:
+            imagen = get_object_or_404(ImagenEstablecimiento, id=pk_imagen)
+            imagen.delete()
+            return Response(
+                {'detail': 'Imagen eliminada exitosamente.'},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

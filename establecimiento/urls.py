@@ -7,4 +7,6 @@ router.register(r'', views.EstablecimientoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('<int:pk>/imagenes/', views.ImagenesEstablecimientoView.as_view(), name='Crear Establecimiento'),
+    path('imagenes/<int:pk_imagen>/', views.ImagenesEstablecimientoView.as_view(), name='Crear Establecimiento'),
 ]
