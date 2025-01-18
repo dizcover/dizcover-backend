@@ -7,4 +7,6 @@ router.register(r'', views.EventoViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('<int:pk>/imagenes/', views.ImagenesEventosView.as_view(), name='Crear imagen evento'),
+    path('imagenes/<int:pk_imagen>/', views.ImagenesEventosView.as_view(), name='obtener imagen evento'),
 ]

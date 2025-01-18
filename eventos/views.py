@@ -1,7 +1,10 @@
-from rest_framework import viewsets
-from .serializer import EventoSerializer
-from .models import Evento
+from rest_framework import viewsets, status
+from .serializer import EventoSerializer, ImagenEventoSerializer
+from .models import Evento, ImagenEvento
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 # Esto es bascimane la API de eventos, ya su toca cambiar el comportamiento o algo por el estilo, toca modificar y crear las funciones de la API
 class EventoViewSet(viewsets.ModelViewSet):
@@ -24,4 +27,92 @@ class EventoViewSet(viewsets.ModelViewSet):
     serializer_class = EventoSerializer
 
 
+# API de imagenes de Eventos
+class ImagenesEventosView(APIView):
+    # Recibe el id del Eventos al que se le asociará la imagen
+    def post(self, request, pk):
+        """
+        Crea una nueva imagen asociada a un Evento.
+        """
+        try:
+            evento = get_object_or_404(Evento, id=pk)
+            imagenes_existentes = ImagenEvento.objects.filter(evento=evento).count()
+            imagenes = [request.data.get(f'imagen{i}') for i in range(1, len(request.data)+1)]
+            suma_imgenes_guardas_subidas = imagenes_existentes + len([imagen for imagen in imagenes if imagen])
+            print('hola')
+
+            # Validar el tipo de archivo de las imágenes
+            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg']
+            for imagen in imagenes:
+                if imagen and imagen.content_type not in formatos_permitidos:
+                    return Response(
+                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG o JPG.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            print('hola')
+            if imagenes_existentes >= 3 or suma_imgenes_guardas_subidas > 3:
+                return Response(
+                    {'detail': 'El evento no puede tener más de 3 imágenes.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            print('hola')
+            if not any(imagenes):
+                return Response(
+                    {'detail': 'Debe proporcionar al menos una imagen.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            print('hola')
+            total_size_mb = sum(imagen.size for imagen in imagenes if imagen) / (1024 * 1024)
+            # print(total_size_mb)
+            if total_size_mb > 3:  # Limite de tamaño total de imágenes en MB
+                return Response(
+                    {'detail': 'El tamaño total de las imágenes no puede exceder los 5 MB.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            print('hola')
+            for imagen in imagenes:
+                if imagen:
+                    ImagenEvento.objects.create(evento=evento, imagen=imagen)
+            print('hola')
+            return Response(
+                {'detail': 'Imagen/es creada exitosamente.'},
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+    def get(self, request, pk):
+        """
+        Obtiene las imágenes asociadas a un evento.
+        """
+        try:
+            evento = get_object_or_404(Evento, id=pk)
+            imagenes = ImagenEvento.objects.filter(evento=evento)
+            serializer = ImagenEventoSerializer(imagenes, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, pk_imagen):
+        """
+        Elimina una imagen asociada a un evento.
+        """
+        try:
+            imagen = get_object_or_404(ImagenEvento, id=pk_imagen)
+            imagen.delete()
+            return Response(
+                {'detail': 'Imagen eliminada exitosamente.'},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
