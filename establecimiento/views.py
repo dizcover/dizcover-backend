@@ -2,12 +2,14 @@ from rest_framework import viewsets, status
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
-
 from .models import Establecimiento
 from discotequero.models import Discotequero
 from establecimiento.models import Establecimiento, ImagenEstablecimiento
 from rest_framework.views import APIView
 from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer
+
+
+
 
 class EstablecimientoViewSet(viewsets.ModelViewSet):
     """
@@ -128,17 +130,42 @@ class ImagenesEstablecimientoView(APIView):
         """
         try:
             establecimiento = get_object_or_404(Establecimiento, id=pk)
-            imagenes = [request.data.get(f'imagen{i}') for i in range(1, 11)]  # Suponiendo un máximo de 10 imágenes
+            imagenes_existentes = ImagenEstablecimiento.objects.filter(establecimiento=establecimiento).count()
+            imagenes = [request.data.get(f'imagen{i}') for i in range(1, len(request.data)+1)]
+            suma_imgenes_guardas_subidas = imagenes_existentes + len([imagen for imagen in imagenes if imagen])
+
+            # Validar el tipo de archivo de las imágenes
+            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg']
+            for imagen in imagenes:
+                if imagen and imagen.content_type not in formatos_permitidos:
+                    return Response(
+                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG o JPG.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+            
+            if imagenes_existentes >= 5 or suma_imgenes_guardas_subidas > 5:
+                return Response(
+                    {'detail': 'El establecimiento no puede tener más de 5 imágenes.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             if not any(imagenes):
                 return Response(
                     {'detail': 'Debe proporcionar al menos una imagen.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            else: 
-                for imagen in imagenes:
-                    if imagen:
-                        ImagenEstablecimiento.objects.create(establecimiento=establecimiento, imagen=imagen)
+
+            total_size_mb = sum(imagen.size for imagen in imagenes if imagen) / (1024 * 1024)
+            print(total_size_mb)
+            if total_size_mb > 5:  # Limite de tamaño total de imágenes en MB
+                return Response(
+                    {'detail': 'El tamaño total de las imágenes no puede exceder los 5 MB.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            for imagen in imagenes:
+                if imagen:
+                    ImagenEstablecimiento.objects.create(establecimiento=establecimiento, imagen=imagen)
                 
             return Response(
                 {'detail': 'Imagen/es creada exitosamente.'},

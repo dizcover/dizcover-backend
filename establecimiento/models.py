@@ -37,7 +37,7 @@ class Establecimiento(models.Model):
     telefono = models.CharField(max_length=100, null=True)
     email = models.EmailField(null=True)
     descripcion = models.TextField(null=True)
-    # imagen = models.FileField(upload_to='establecimientos/images/', null=True)
+
     departamento = models.CharField(max_length=100, null=True)
     municipio = models.CharField(max_length=100, null=True)
     id_coordenada = models.ForeignKey('Coordenada', on_delete=models.CASCADE, null=True)
