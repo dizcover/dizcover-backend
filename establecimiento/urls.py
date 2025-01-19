@@ -8,5 +8,10 @@ router.register(r'', views.EstablecimientoViewSet)
 urlpatterns = [
     path('', include(router.urls)),
     path('<int:pk>/imagenes/', views.ImagenesEstablecimientoView.as_view(), name='Crear Establecimiento'),
-    path('imagenes/<int:pk_imagen>/', views.ImagenesEstablecimientoView.as_view(), name='Crear Establecimiento'),
+    path('imagenes/<int:pk_imagen>/', views.ImagenesEstablecimientoView.as_view(), name='Crear Imagen'),
+
+
+    # Horario
+    path('<int:pk>/horarios/', views.HorarioEstablecimientoView.as_view(), name='Crear y Obtener Horario'),
+    path('horario/<int:pk>/', views.HorarioEstablecimientoView.as_view(), name='eliminar y actualizar dia horario'),
 ]

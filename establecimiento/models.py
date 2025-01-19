@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils.text import slugify
+from enum import Enum
 
 class Establecimiento(models.Model):
     """
@@ -40,8 +41,8 @@ class Establecimiento(models.Model):
 
     departamento = models.CharField(max_length=100, null=True)
     municipio = models.CharField(max_length=100, null=True)
-    id_coordenada = models.ForeignKey('Coordenada', on_delete=models.CASCADE, null=True)
-    id_horario = models.ForeignKey('Horario', on_delete=models.CASCADE, null=True)
+    # id_coordenada = models.ForeignKey('Coordenada', on_delete=models.CASCADE, null=True)
+    # id_horario = models.ForeignKey('Horario', on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return self.nombre
@@ -88,11 +89,32 @@ class Coordenada(models.Model):
 
     def __str__(self):
         return self.direccion
+
+class DiaSemanaEnum(Enum):
+    LUNES = "Lunes"
+    MARTES = "Martes"
+    MIERCOLES = "Miércoles"
+    JUEVES = "Jueves"
+    VIERNES = "Viernes"
+    SABADO = "Sábado"
+    DOMINGO = "Domingo"
     
 class Horario(models.Model):
-    dias = models.CharField(max_length=100)
+    dia = models.CharField(
+        max_length=20,
+        choices=[(dia.name, dia.value) for dia in DiaSemanaEnum],
+        default=DiaSemanaEnum.LUNES.name
+    )
     hora_apertura = models.TimeField()
     hora_cierre = models.TimeField()
 
     def __str__(self):
-        return f"{self.dias} - {self.hora_apertura} - {self.hora_cierre}"
+        return f"{self.dia} - {self.hora_apertura} - {self.hora_cierre}"
+
+
+class HorarioEstablecimiento(models.Model):
+    establecimiento = models.ForeignKey('Establecimiento', on_delete=models.CASCADE, related_name='horarios')
+    horario = models.ForeignKey('Horario', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Horario de {self.establecimiento.nombre} para el {self.horario.dia}. Aperura: {self.horario.hora_apertura} - Cierre: {self.horario.hora_cierre}"

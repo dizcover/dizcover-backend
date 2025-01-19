@@ -4,9 +4,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from .models import Establecimiento
 from discotequero.models import Discotequero
-from establecimiento.models import Establecimiento, ImagenEstablecimiento
+from establecimiento.models import Establecimiento, ImagenEstablecimiento, Horario, HorarioEstablecimiento
 from rest_framework.views import APIView
-from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer
+from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer, HorarioEstablecimientoSerializer
 
 
 
@@ -120,6 +120,29 @@ class EstablecimientoViewSet(viewsets.ModelViewSet):
         # Si no pasa nada, actualizamos la entidad
         return super().update(request, *args, **kwargs)
     
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        """
+        Elimina un establecimiento existente.
+        """
+        id_establecimiento = kwargs.get('pk')
+
+        try:
+            # Verificar si el establecimiento existe
+            establecimiento = get_object_or_404(Establecimiento, id=id_establecimiento)
+        except:
+            return Response(
+                {'detail': 'Establecimiento no encontrado.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Eliminar el establecimiento
+        establecimiento.delete()
+
+        return Response(
+            {'detail': 'Establecimiento eliminado exitosamente.'},
+            status=status.HTTP_200_OK
+        )
 
 # API de imagenes de establecimientos
 class ImagenesEstablecimientoView(APIView):
@@ -208,3 +231,118 @@ class ImagenesEstablecimientoView(APIView):
                 {'Error': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+# API Horario
+
+
+class HorarioEstablecimientoView(APIView):
+    def post(self, request, pk):
+        """
+        Crea nuevos horarios asociados a un establecimiento, asegurando que no haya días duplicados.
+        """
+        # Obtener el establecimiento
+        establecimiento = get_object_or_404(Establecimiento, pk=pk)
+
+        # Obtener los datos del request (esperamos varios días con su hora de apertura y cierre)
+        horarios = request.data
+
+        # Lista para almacenar los días duplicados
+        dias_duplicados = []
+
+        # Iterar sobre los días en el JSON enviado
+        for dia, horario_data in horarios.items():
+            # Verificar que el día no esté duplicado para el establecimiento
+            if HorarioEstablecimiento.objects.filter(establecimiento=establecimiento, horario__dia=dia).exists():
+                dias_duplicados.append(dia)
+                continue  # Si el día ya está asignado, saltamos a la siguiente iteración
+
+            # Crear el horario
+            hora_apertura = horario_data.get('hora_apertura')
+            hora_cierre = horario_data.get('hora_cierre')
+
+            if not hora_apertura or not hora_cierre:
+                return Response(
+                    {'detail': f"Los horarios de apertura y cierre son obligatorios para {dia}."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            horario = Horario.objects.create(dia=dia, hora_apertura=hora_apertura, hora_cierre=hora_cierre)
+            
+            # Asociar el horario al establecimiento
+            HorarioEstablecimiento.objects.create(establecimiento=establecimiento, horario=horario)
+
+        if dias_duplicados:
+            return Response(
+                {'detail': f"Ya existe un horario para los días: {', '.join(dias_duplicados)}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {'detail': "Horario/s creados exitosamente."},
+            status=status.HTTP_201_CREATED
+        )
+
+    def get(self, request, pk):
+        """
+        Obtiene los horarios asociados a un establecimiento, incluyendo el ID del horario y el día.
+        """
+        # Obtener el establecimiento
+        establecimiento = get_object_or_404(Establecimiento, pk=pk)
+        
+        # Obtener todos los horarios asociados al establecimiento
+        horarios = HorarioEstablecimiento.objects.filter(establecimiento=establecimiento)
+        
+        
+        # Serializar los horarios
+        serializer = HorarioEstablecimientoSerializer(horarios, many=True)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        """
+        Elimina un horario asociado a un establecimiento.
+        """
+        
+        # Obtener el día del horario a eliminar
+        
+        # Buscar el horario para ese día
+        dia = Horario.objects.filter(
+            id=pk
+        ).first()
+        
+        if not dia:
+            return Response(
+                {'detail': f"No se encontró un horario para el día {dia.dia}."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Eliminar el horario
+        dia.delete()
+        
+        return Response(
+            {'detail': f"Horario para el día {dia.dia} eliminado exitosamente."},
+            status=status.HTTP_200_OK
+        )
+    
+    def put(self, request, pk):
+        """
+        Actualiza un horario asociado a un establecimiento.
+        """
+        try:
+            # Obtener el día del horario a actualizar
+            dia = Horario.objects.filter(id=pk).first()
+            
+            # Actualizar el horario
+            dia.hora_apertura = request.data.get('hora_apertura', dia.hora_apertura)
+            dia.hora_cierre = request.data.get('hora_cierre', dia.hora_cierre)
+            dia.save()
+            
+            return Response(
+            {'detail': f"Horario para el día {dia.dia} actualizado exitosamente."},
+            status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+            {'Error': "El horario no pudo ser actualizado. Verifique los datos enviados."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
