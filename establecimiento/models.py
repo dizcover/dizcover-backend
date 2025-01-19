@@ -79,16 +79,17 @@ class ImagenEstablecimiento(models.Model):
     def __str__(self):
         return f"Imagen de {self.establecimiento.nombre}"
 
-
 class Coordenada(models.Model):
-    latitud = models.FloatField()
-    longitud = models.FloatField()
-    direccion = models.CharField(max_length=100)
-    este = models.CharField(max_length=100)
-    oeste = models.CharField(max_length=100)
+    establecimiento = models.OneToOneField('Establecimiento', on_delete=models.CASCADE, related_name='coordenada', null=True, blank=True)
+    latitud = models.FloatField()  # Latitud del punto geográfico
+    longitud = models.FloatField()  # Longitud del punto geográfico
+    # Puedes agregar un campo adicional si deseas almacenar información sobre el hemisferio
+    hemisferio_lat = models.CharField(max_length=1, choices=[('N', 'Norte'), ('S', 'Sur')], null=True, blank=True)
+    hemisferio_lon = models.CharField(max_length=1, choices=[('E', 'Este'), ('O', 'Oeste')], null=True, blank=True)
 
     def __str__(self):
-        return self.direccion
+        return f"Lat: {self.latitud}, Lon: {self.longitud}"
+
 
 class DiaSemanaEnum(Enum):
     LUNES = "Lunes"

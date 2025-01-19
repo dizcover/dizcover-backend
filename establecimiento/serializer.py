@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Establecimiento, Coordenada, Horario, ImagenEstablecimiento, HorarioEstablecimiento
+from .models import Establecimiento, Coordenada, Horario, ImagenEstablecimiento, HorarioEstablecimiento, Coordenada
 
 class EstablecimientoSerializer(serializers.ModelSerializer):
     """
@@ -40,3 +40,11 @@ class HorarioEstablecimientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = HorarioEstablecimiento
         fields = ['dia_id', 'dia', 'hora_apertura', 'hora_cierre']  # Incluir id del horario, día y id de la relación
+
+class CoordenadaSerializer(serializers.ModelSerializer):
+    """
+    Este serializador convierte el modelo 'Coordenada' a JSON.
+    """
+    class Meta:
+        model = Coordenada
+        fields = '__all__'

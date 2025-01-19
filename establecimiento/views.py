@@ -4,9 +4,9 @@ from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from .models import Establecimiento
 from discotequero.models import Discotequero
-from establecimiento.models import Establecimiento, ImagenEstablecimiento, Horario, HorarioEstablecimiento
+from establecimiento.models import Establecimiento, ImagenEstablecimiento, Horario, HorarioEstablecimiento, Coordenada
 from rest_framework.views import APIView
-from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer, HorarioEstablecimientoSerializer
+from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer, HorarioEstablecimientoSerializer, CoordenadaSerializer
 
 
 
@@ -346,3 +346,125 @@ class HorarioEstablecimientoView(APIView):
             {'Error': "El horario no pudo ser actualizado. Verifique los datos enviados."},
             status=status.HTTP_400_BAD_REQUEST
         )
+
+#API Coordenadas
+class CoordenadaEstablecimientoView(APIView):
+
+    def post(self, request, pk):
+        """
+        Crea una nueva coordenada asociada a un establecimiento.
+        """
+        try:
+            # Obtener el establecimiento por el pk
+            establecimiento = get_object_or_404(Establecimiento, pk=pk)
+
+            # Extraer los datos del request
+            latitud = request.data.get('latitud')
+            longitud = request.data.get('longitud')
+            hemisferio_lat = request.data.get('hemisferio_lat')
+            hemisferio_lon = request.data.get('hemisferio_lon')
+
+            # Validar que las coordenadas no sean nulas
+            if latitud is None or longitud is None:
+                return Response(
+                    {'detail': 'Latitud y longitud son requeridos.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Crear la coordenada
+            coordenada = Coordenada.objects.create(
+                establecimiento=establecimiento,
+                latitud=latitud,
+                longitud=longitud,
+                hemisferio_lat=hemisferio_lat,
+                hemisferio_lon=hemisferio_lon
+            )
+
+            # Serializar la respuesta
+            serializer = CoordenadaSerializer(coordenada)
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'Error': "No se pudo crear la coordenada. Verifique los datos enviados y que el establecimiento no tenga coordenadas ya creadas."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def get(self, request, pk):
+        """
+        Obtiene todas las coordenadas asociadas a un establecimiento.
+        """
+        try:
+            establecimiento = get_object_or_404(Establecimiento, pk=pk)
+
+            # Obtener todas las coordenadas del establecimiento
+            coordenadas = Coordenada.objects.filter(establecimiento=establecimiento)
+
+            # Serializar las coordenadas
+            serializer = CoordenadaSerializer(coordenadas, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def put(self, request, pk, coord_pk):
+        """
+        Actualiza una coordenada asociada a un establecimiento.
+        """
+        try:
+            # Obtener el establecimiento y la coordenada a actualizar
+            establecimiento = get_object_or_404(Establecimiento, pk=pk)
+            coordenada = get_object_or_404(Coordenada, pk=coord_pk, establecimiento=establecimiento)
+
+            # Actualizar los campos de la coordenada
+            latitud = request.data.get('latitud')
+            longitud = request.data.get('longitud')
+            hemisferio_lat = request.data.get('hemisferio_lat')
+            hemisferio_lon = request.data.get('hemisferio_lon')
+
+            if latitud is not None:
+                coordenada.latitud = latitud
+            if longitud is not None:
+                coordenada.longitud = longitud
+            if hemisferio_lat is not None:
+                coordenada.hemisferio_lat = hemisferio_lat
+            if hemisferio_lon is not None:
+                coordenada.hemisferio_lon = hemisferio_lon
+
+            coordenada.save()
+
+            # Serializar y devolver la coordenada actualizada
+            serializer = CoordenadaSerializer(coordenada)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, pk, coord_pk):
+        """
+        Elimina una coordenada asociada a un establecimiento.
+        """
+        try:
+            # Obtener el establecimiento y la coordenada a eliminar
+            establecimiento = get_object_or_404(Establecimiento, pk=pk)
+            coordenada = get_object_or_404(Coordenada, pk=coord_pk, establecimiento=establecimiento)
+
+            coordenada.delete()
+
+            return Response(
+                {'detail': 'Coordenada eliminada exitosamente.'},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
