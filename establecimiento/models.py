@@ -6,6 +6,7 @@ from io import BytesIO
 import os
 import boto3
 from dotenv import load_dotenv
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Establecimiento(models.Model):
     """
@@ -122,8 +123,8 @@ class ImagenEstablecimiento(models.Model):
 
 class Coordenada(models.Model):
     establecimiento = models.OneToOneField('Establecimiento', on_delete=models.CASCADE, related_name='coordenada', null=True, blank=True)
-    latitud = models.FloatField()  # Latitud del punto geográfico
-    longitud = models.FloatField()  # Longitud del punto geográfico
+    latitud = models.FloatField(validators=[MinValueValidator(-90.0), MaxValueValidator(90.0)])
+    longitud = models.FloatField(validators=[MinValueValidator(-180.0), MaxValueValidator(180.0)])
     # Puedes agregar un campo adicional si deseas almacenar información sobre el hemisferio
     hemisferio_lat = models.CharField(max_length=1, choices=[('N', 'Norte'), ('S', 'Sur')], null=True, blank=True)
     hemisferio_lon = models.CharField(max_length=1, choices=[('E', 'Este'), ('O', 'Oeste')], null=True, blank=True)

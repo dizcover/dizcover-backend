@@ -347,9 +347,34 @@ class HorarioEstablecimientoView(APIView):
             status=status.HTTP_400_BAD_REQUEST
         )
 
+def validar_coordenadas(latitud, longitud, hemisferio_lat, hemisferio_lon):
+        """
+        Valida las coordenadas proporcionadas.
+        """
+        if latitud is not None:
+            latitud = float(latitud)
+            if latitud < -90.0 or latitud > 90.0:
+                return {'detail': 'Latitud debe estar entre -90.0 y 90.0.'}
+
+        if longitud is not None:
+            longitud = float(longitud)
+            if longitud < -180.0 or longitud > 180.0:
+                return {'detail': 'Longitud debe estar entre -180.0 y 180.0.'}
+
+        if hemisferio_lat not in ['N', 'S']:
+            return {'detail': 'Hemisferio de latitud debe ser "N" o "S".'}
+
+        if hemisferio_lon not in ['E', 'O']:
+            return {'detail': 'Hemisferio de longitud debe ser "E" o "O".'}
+
+        if latitud is None or longitud is None:
+            return {'detail': 'Latitud y longitud son requeridos.'}
+
+        return None
+
 #API Coordenadas
 class CoordenadaEstablecimientoView(APIView):
-    # Incluir coordenadas planas (cuantos metros al n o s, ect)
+    #TODO: Incluir coordenadas planas (cuantos metros al n o s, ect)
 
     def post(self, request, pk):
         """
@@ -365,12 +390,10 @@ class CoordenadaEstablecimientoView(APIView):
             hemisferio_lat = request.data.get('hemisferio_lat')
             hemisferio_lon = request.data.get('hemisferio_lon')
 
-            # Validar que las coordenadas no sean nulas
-            if latitud is None or longitud is None:
-                return Response(
-                    {'detail': 'Latitud y longitud son requeridos.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            # Validar las coordenadas
+            error = validar_coordenadas(latitud, longitud, hemisferio_lat, hemisferio_lon)
+            if error:
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
             # Crear la coordenada
             coordenada = Coordenada.objects.create(
@@ -428,6 +451,11 @@ class CoordenadaEstablecimientoView(APIView):
             longitud = request.data.get('longitud')
             hemisferio_lat = request.data.get('hemisferio_lat')
             hemisferio_lon = request.data.get('hemisferio_lon')
+
+            # Validar las coordenadas
+            error = validar_coordenadas(latitud, longitud, hemisferio_lat, hemisferio_lon)
+            if error:
+                return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
             if latitud is not None:
                 coordenada.latitud = latitud
