@@ -34,46 +34,42 @@ class ImagenesEventosView(APIView):
         """
         Crea una nueva imagen asociada a un Evento.
         """
+
+        
+
         try:
             evento = get_object_or_404(Evento, id=pk)
             imagenes_existentes = ImagenEvento.objects.filter(evento=evento).count()
             imagenes = [request.data.get(f'imagen{i}') for i in range(1, len(request.data)+1)]
             suma_imgenes_guardas_subidas = imagenes_existentes + len([imagen for imagen in imagenes if imagen])
-            print('hola')
 
             # Validar el tipo de archivo de las imágenes
-            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg']
+            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
             for imagen in imagenes:
                 if imagen and imagen.content_type not in formatos_permitidos:
                     return Response(
-                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG o JPG.'},
+                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG, JPG o WebP.'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
-            print('hola')
             if imagenes_existentes >= 3 or suma_imgenes_guardas_subidas > 3:
                 return Response(
                     {'detail': 'El evento no puede tener más de 3 imágenes.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            print('hola')
             if not any(imagenes):
                 return Response(
                     {'detail': 'Debe proporcionar al menos una imagen.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            print('hola')
-            total_size_mb = sum(imagen.size for imagen in imagenes if imagen) / (1024 * 1024)
-            # print(total_size_mb)
-            if total_size_mb > 3:  # Limite de tamaño total de imágenes en MB
-                return Response(
-                    {'detail': 'El tamaño total de las imágenes no puede exceder los 5 MB.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            print('hola')
             for imagen in imagenes:
                 if imagen:
-                    ImagenEvento.objects.create(evento=evento, imagen=imagen)
-            print('hola')
+                    total_size_mb = imagen.size / (1024 * 1024)
+                    if total_size_mb > 5:
+                        return Response(
+                                {'detail': 'El tamaño las imágenes no puede exceder los 5 MB.'},
+                    status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        ImagenEvento.objects.create(evento=evento, imagen=imagen)
             return Response(
                 {'detail': 'Imagen/es creada exitosamente.'},
                 status=status.HTTP_201_CREATED

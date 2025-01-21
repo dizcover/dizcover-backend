@@ -158,17 +158,18 @@ class ImagenesEstablecimientoView(APIView):
             suma_imgenes_guardas_subidas = imagenes_existentes + len([imagen for imagen in imagenes if imagen])
 
             # Validar el tipo de archivo de las imágenes
-            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg']
+            #webp 0 jpg 200 o jpg xr 
+            formatos_permitidos = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp']
             for imagen in imagenes:
                 if imagen and imagen.content_type not in formatos_permitidos:
                     return Response(
-                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG o JPG.'},
+                        {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG, JPG o WebP.'},
                         status=status.HTTP_400_BAD_REQUEST
                     )
             
-            if imagenes_existentes >= 5 or suma_imgenes_guardas_subidas > 5:
+            if imagenes_existentes >= 10 or suma_imgenes_guardas_subidas > 10:
                 return Response(
-                    {'detail': 'El establecimiento no puede tener más de 5 imágenes.'},
+                    {'detail': 'El establecimiento no puede tener más de 10 imágenes.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
@@ -178,17 +179,16 @@ class ImagenesEstablecimientoView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-            total_size_mb = sum(imagen.size for imagen in imagenes if imagen) / (1024 * 1024)
-            print(total_size_mb)
-            if total_size_mb > 5:  # Limite de tamaño total de imágenes en MB
-                return Response(
-                    {'detail': 'El tamaño total de las imágenes no puede exceder los 5 MB.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
             for imagen in imagenes:
                 if imagen:
-                    ImagenEstablecimiento.objects.create(establecimiento=establecimiento, imagen=imagen)
+                    total_size_mb = imagen.size / (1024 * 1024)
+                    if total_size_mb > 5:  # Limite de tamaño total de imágenes en MB
+                        return Response(
+                        {'detail': 'El tamaño total de las imágenes no puede exceder los 5 MB.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                        )
+                    else:
+                        ImagenEstablecimiento.objects.create(establecimiento=establecimiento, imagen=imagen)
                 
             return Response(
                 {'detail': 'Imagen/es creada exitosamente.'},
@@ -349,6 +349,7 @@ class HorarioEstablecimientoView(APIView):
 
 #API Coordenadas
 class CoordenadaEstablecimientoView(APIView):
+    # Incluir coordenadas planas (cuantos metros al n o s, ect)
 
     def post(self, request, pk):
         """
