@@ -150,6 +150,12 @@ class ImagenesEstablecimientoView(APIView):
     def post(self, request, pk):
         """
         Crea una nueva imagen asociada a un establecimiento.
+
+        La estructura de debe ser un Form Data en la cual se pueden mandar varias imagenes a la vez. Ejemplo:
+            imagen1: imagen1.jpg
+            imagen2: imagen2.jpg
+            ...
+            imagen5: imagen5.jpg
         """
         try:
             establecimiento = get_object_or_404(Establecimiento, id=pk)
@@ -239,6 +245,23 @@ class HorarioEstablecimientoView(APIView):
     def post(self, request, pk):
         """
         Crea nuevos horarios asociados a un establecimiento, asegurando que no haya días duplicados.
+
+        El Json enviado debe tener la siguiente estructura:
+        {
+            "Lunes": {
+                "hora_apertura": "10:00",
+                "hora_cierre": "23:30"
+            },
+            "Domingo": {
+                "hora_apertura": "10:00",
+                "hora_cierre": "23:30"
+            },
+            "Miércoles": {
+                "hora_apertura": "10:00",
+                "hora_cierre": "23:30"
+            }
+        }
+
         """
         # Obtener el establecimiento
         establecimiento = get_object_or_404(Establecimiento, pk=pk)

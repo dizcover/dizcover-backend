@@ -33,6 +33,12 @@ class ImagenesEventosView(APIView):
     def post(self, request, pk):
         """
         Crea una nueva imagen asociada a un Evento.
+
+        La estructura de debe ser un Form Data en la cual se pueden mandar varias imagenes a la vez. Ejemplo:
+            imagen1: imagen1.jpg
+            imagen2: imagen2.jpg
+            ...
+            imagen3: imagen3.jpg
         """
 
         

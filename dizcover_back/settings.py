@@ -207,8 +207,8 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 )
 
-LOGIN_REDIRECT_URL = '/api/autenticacion/login'
-LOGOUT_REDIRECT_URL = '/api/autenticacion/login'
+LOGIN_REDIRECT_URL = '/autenticacion/login'
+LOGOUT_REDIRECT_URL = '/autenticacion/login'
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'nombre_usuario'
 ACCOUNT_USERNAME_REQUIRED = True  # Cambia a False si no quieres usar nombre_usuario
 ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Puede ser 'email' si prefieres autenticación por correo

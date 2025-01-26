@@ -30,6 +30,16 @@ class Users(AbstractBaseUser, PermissionsMixin):
     )
     is_active = models.BooleanField(gettext_lazy("active"), default=True)
 
+
+    TIPO_CHOICES = [
+        ('indefinido', 'Indefinido'),
+        ('discotequero', 'Discotequero'),
+        ('fiestero', 'Fiestero'),
+    ]
+    tipo = models.CharField(
+        gettext_lazy("tipo"), max_length=20, choices=TIPO_CHOICES, default='indefinido', blank=True, null=True
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = "nombre_usuario"
