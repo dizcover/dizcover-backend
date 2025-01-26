@@ -28,7 +28,7 @@ urlpatterns = [
     path('docs/', include_docs_urls(title='Dizcover API Documentation')),
 
     # path('docs/', include_docs_urls(title='Dizcover API Documentation')),
-    path('api/autenticacion/', include('autenticacion.urls')), #Para la autenticacion
+    path('autenticacion/', include('autenticacion.urls')), #Para la autenticacion
     path('accounts/', include('allauth.urls')), #Para la autenticacion con google
     path('', home),  # Ruta para la página de inicio en la raíz
 

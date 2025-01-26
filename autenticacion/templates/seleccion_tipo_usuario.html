@@ -36,7 +36,7 @@
     <div id="fiesteroForm" class="form-section">
         <h2>Formulario Fiestero</h2>
         
-        <form method="POST" action="http://localhost:8000/api/autenticacion/seleccion-tipo-usuario/">
+        <form method="POST" action="http://localhost:8000/autenticacion/seleccion-tipo-usuario/">
             <input type="hidden"  id="user_id" name="user_id" value="{{ data.user_id }}">
             <input type="hidden" name="tipo_usuario" value="fiestero">
 
@@ -59,7 +59,7 @@
     <!-- Formulario para Discotequero -->
     <div id="discotequeroForm" class="form-section">
         <h2>Formulario Discotequero</h2>
-        <form method="POST" action="http://localhost:8000/api/autenticacion/seleccion-tipo-usuario/">
+        <form method="POST" action="http://localhost:8000/autenticacion/seleccion-tipo-usuario/">
             <input type="hidden" id="user_id" name="user_id" value="{{ data.user_id }}">
             <input type="hidden" name="tipo_usuario" value="discotequero">
 
@@ -72,12 +72,9 @@
             <br>
 
             <label for="digito_verificacion">Dígito de Verificación:</label>
-            <input type="text" id="digito_verificacion" name="digito_verificacion_nit" maxlength="1">
+            <input type="text" id="digito_verificacion" name="digito_verificacion_nit">
             <br>
 
-            <label for="NIT_verificado">NIT Verificado:</label>
-            <input type="checkbox" id="NIT_verificado" name="NIT_verificado" value="true">
-            <br>
 
             <button type="submit">Enviar Discotequero</button>
         </form>
