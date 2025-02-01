@@ -5,9 +5,18 @@ class EstablecimientoSerializer(serializers.ModelSerializer):
     """
     Este serializador convierte el modelo 'Establecimiento' a JSON.
     """
+    primera_imagen = serializers.SerializerMethodField()
+
     class Meta:
         model = Establecimiento
         fields = '__all__'
+
+    def get_primera_imagen(self, obj):
+        # Obtener la primera imagen asociada al establecimiento
+        primera_imagen = obj.imagenes.first()  # Relación inversa usando 'imagenes'
+        if primera_imagen:
+            return primera_imagen.imagen.url  # Asegúrate de que la imagen tenga la URL
+        return None
 
 class ImagenEstablecimientoSerializer(serializers.ModelSerializer):
     class Meta:

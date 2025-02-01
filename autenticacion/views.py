@@ -68,11 +68,12 @@ def seleccion_vista(request):
 # APIS
 
 @api_view(['GET'])
-def verificar_tipo_usuario(request):
+@permission_classes([IsAuthenticated])
+def verificar_tipo_usuario(request, id_user):
     """
     Verifica si el usuario tiene un tipo asignado. Si no, redirige al frontend para que elija el tipo.
     """
-    user = request.user
+    user = Users.objects.get(pk=id_user)
     if user.tipo == 'indefinido':
         # Si el tipo es 'indefinido', redirigir al frontend para que elija el tipo
         return Response({'message': 'Tipo de usuario no asignado', 'valor': False}, status=status.HTTP_200_OK)
@@ -103,13 +104,12 @@ def generar_token_jwt(request):
     except Exception as e:
         return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def seleccion_tipo_usuario(request, id_user):
     """
     Asigna un tipo de usuario a un usuario recién autenticado (fiestero o discotequero).
-    """
+            """
     try:
         # Obtener el usuario
         user = Users.objects.get(pk=id_user)
@@ -125,64 +125,56 @@ def seleccion_tipo_usuario(request, id_user):
 
         # Dependiendo del tipo, se crea la instancia correspondiente
         if tipo_usuario == 'fiestero':
-            identidad_genero = request.data['identidad_sexo']
-            identificacion = request.data['identificacion']
-            passaporte = request.data['passaporte']
+            fiestero_data = {
+                'user': user.id,
+                'identidad_sexo': request.data['identidad_sexo'],
+                'num_identificacion': request.data['identificacion'],
+                'pasaporte': request.data['passaporte']
+            }
 
-            # Validar identidad_sexo
-            if identidad_genero not in ['M', 'F', 'NB', 'O', 'PND']:
+            # Validar y crear la instancia de Fiestero usando el serializer
+            fiestero_serializer = FiesteroSerializer(data=fiestero_data)
+            if fiestero_serializer.is_valid():
+                fiestero_serializer.save()
+                user.tipo = 'fiestero'
+                user.save()
                 return Response({
-                    'message': 'Identidad de género no válida'
-                }, status=status.HTTP_400_BAD_REQUEST)
-
-            # Crear la instancia de Fiestero
-            fiestero_a_crear = Fiestero.objects.create(
-                user=user,
-                identidad_sexo=identidad_genero,
-                num_identificacion=identificacion,
-                pasaporte=passaporte
-            )
-
-            # Asignar el tipo 'fiestero' al usuario
-            user.tipo = 'fiestero'
-            user.save()
-            
-            return Response({
-                'message': 'Usuario Fiestero creado exitosamente',
-                'data': {'user_id': user.id, 'tipo_usuario': 'fiestero'}
-            }, status=status.HTTP_201_CREATED)
+                    'message': 'Usuario Fiestero creado exitosamente',
+                    'data': {'user_id': user.id, 'tipo_usuario': 'fiestero'}
+                }, status=status.HTTP_201_CREATED)
+            else:
+                return Response(fiestero_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         elif tipo_usuario == 'discotequero':
-            nombre_empresarial = request.data['nombre_empresarial']
-            NIT = request.data['nit']
-            digito_verificacion = request.data['digito_verificacion_nit']
+            discotequero_data = {
+                'user': user.id,
+                'nombre_empresarial': request.data['nombre_empresarial'],
+                'NIT': request.data['nit'],
+                'digito_verificacion': request.data.get('numero_verificacio')
+            }
 
-            # Crear la instancia de Discotequero
-            discotequero_a_crear = Discotequero.objects.create(
-                user=user,
-                nombre_empresarial=nombre_empresarial,
-                NIT=NIT,
-                digito_verificacion=digito_verificacion,
-            )
-
-            # Asignar el tipo 'discotequero' al usuario
-            user.tipo = 'discotequero'
-            user.save()
-
-            return Response({
-                'message': 'Usuario Discotequero creado exitosamente',
-                'data': {'user_id': user.id, 'tipo_usuario': 'discotequero'}
-            }, status=status.HTTP_201_CREATED)
+            # Validar y crear la instancia de Discotequero usando el serializer
+            discotequero_serializer = DiscotequeroSerializer(data=discotequero_data)
+            if discotequero_serializer.is_valid():
+                discotequero_serializer.save()
+                user.tipo = 'discotequero'
+                user.save()
+                return Response({
+                     'message': 'Usuario Discotequero creado exitosamente',
+                      'data': {'user_id': user.id, 'tipo_usuario': 'discotequero'}
+                }, status=status.HTTP_201_CREATED)
+            else:
+                  return Response(discotequero_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         else:
-            return Response({
+             return Response({
                 'message': 'Tipo de usuario no válido'
             }, status=status.HTTP_400_BAD_REQUEST)
 
     except Users.DoesNotExist:
         return Response({
             'message': 'Usuario no encontrado, atributos incorrectos o tipo de usuario no válido.'
-        }, status=status.HTTP_404_NOT_FOUND)
+         }, status=status.HTTP_404_NOT_FOUND)
 
     
 class UserProfileView(APIView):

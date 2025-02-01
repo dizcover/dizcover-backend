@@ -7,11 +7,18 @@ from discotequero.models import Discotequero
 from establecimiento.models import Establecimiento, ImagenEstablecimiento, Horario, HorarioEstablecimiento, Coordenada
 from rest_framework.views import APIView
 from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer, HorarioEstablecimientoSerializer, CoordenadaSerializer
+from rest_framework.permissions import IsAuthenticated
 
 
 
 
 class EstablecimientoViewSet(viewsets.ModelViewSet):
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'destroy']:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
     """
     ViewSet para gestionar la creación y visualización de Establecimientos.
     """
