@@ -49,7 +49,13 @@ class Favorito(models.Model):
 class Fiestero(models.Model):
     user = models.OneToOneField(Users, on_delete=models.CASCADE, related_name='fiestero')
     # Campos específicos de Fiestero
-    identidad_sexo = models.CharField(max_length=20, choices=[('M', 'Masculino'), ('F', 'Femenino'), ('O', 'Otro')])
+    identidad_sexo = models.CharField(max_length=20, choices=[
+        ('M', 'Masculino'),
+        ('F', 'Femenino'),
+        ('NB', 'No binario'),
+        ('O', 'Otro'),
+        ('PND', 'Prefiero no decirlo')
+    ])
     num_identificacion = models.CharField(max_length=20)
     pasaporte = models.CharField(max_length=20, blank=True, null=True)
 

@@ -19,13 +19,13 @@ from rest_framework.decorators import permission_classes
 
 
 def login_view(request):
-    # Verificar si el usuario ya está autenticado
+    # Verificar si el usuario está autenticado
     if request.user.is_authenticated:
         user = request.user
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        # Datos básicos que se devuelven siempre al inicio
+        # Datos que puedes pasar al template
         data = {
             'user_id': user.pk,
             'email': user.email,
@@ -33,131 +33,86 @@ def login_view(request):
             'foto_perfil': user.foto_perfil,
             'refresh_token': str(refresh),
             'access_token': access_token, 
-            'tipo_usuario': user.tipo  # Mostrar el tipo actual del usuario
+            'tipo_usuario': user.tipo
         }
 
-        # Verificar si el usuario ya tiene un tipo asignado
+        # Si el tipo de usuario está definido
         if user.tipo != 'indefinido':
-            # El tipo ya está asignado, entonces mostramos la vista de login con la info del usuario
-            if Fiestero.objects.filter(user=user).exists():
-                tipo = 'fiestero'
-                data['tipo_usuario'] = tipo
-            elif Discotequero.objects.filter(user=user).exists():
-                tipo = 'discotequero'
-                data['tipo_usuario'] = tipo
-            return render(request, 'login.html', {'data': data})
-        
-        # Si el usuario tiene el tipo 'indefinido', verificarlo a través de la API
-        api_url = f"http://localhost:8000/autenticacion/verificacion-tipo-usuario/{user.pk}/"
-        headers = {
-            'Authorization': f'Bearer {access_token}'
-        }
+            return render(request, 'login.html', {'data': data, 'show_selection_button': False})
 
-        try:
-            response = requests.get(api_url, headers=headers)
-            response_data = response.json()
+        # Si el tipo de usuario no está definido, mostramos un botón para elegir
+        return render(request, 'login.html', {'data': data, 'show_selection_button': True})
 
-            # Verificar la respuesta de la API
-            if response.status_code == 200:
-                if not response_data['value']:  # Si no tiene tipo de usuario asignado
-                    return render(request, 'seleccion_tipo_usuario.html', {'data': data})  # Redirigir a la página de selección
-                else:
-                    # Si ya tiene un tipo asignado, mostrar el tipo
-                    tipo_usuario = response_data['message']
-                    data['tipo_usuario'] = tipo_usuario
-                    return render(request, 'login.html', {'data': data})
-
-        except requests.exceptions.RequestException as e:
-            # Manejar errores de la solicitud
-            print(f"Error al llamar a la API de verificación: {e}")
-            return render(request, 'error.html', {'message': 'Error en la verificación del tipo de usuario'})
-
-    return render(request, 'login.html')
-
-
+    # Si el usuario no está autenticado, redirigir a la autenticación de Google
+    return redirect("http://localhost:8000/accounts/google/login/?process=login")
 
 def logout_view(request):
     logout(request)
     return redirect('login')
 
+def seleccion_vista(request):
+    if request.user.is_authenticated:
+        user = request.user
+        
+        # Datos básicos que se devuelven siempre al inicio
+        data = {
+            'user_id': user.pk,
+            'email': user.email,
+            'nombre_completo': user.nombre_completo,
+            'foto_perfil': user.foto_perfil,
+            'tipo_usuario': user.tipo  # Mostrar el tipo actual del usuario
+        }
+
+    return render(request, 'seleccion_tipo_usuario.html', {'data': data})
+
 # APIS
 
-
-
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-def type_verification_user(request, pk_user):
+def verificar_tipo_usuario(request):
+    """
+    Verifica si el usuario tiene un tipo asignado. Si no, redirige al frontend para que elija el tipo.
+    """
+    user = request.user
+    if user.tipo == 'indefinido':
+        # Si el tipo es 'indefinido', redirigir al frontend para que elija el tipo
+        return Response({'message': 'Tipo de usuario no asignado', 'valor': False}, status=status.HTTP_200_OK)
+    else:
+        # Si ya tiene un tipo de usuario, devolver la información
+        return Response({'message': 'Usuario tiene tipo asignado', 'user_type': user.tipo}, status=status.HTTP_200_OK)
+
+#Este deberia ser la unica vista que NO esta recibiendo credenciales ya que las genera. Los univos credenciales que se deben recibir 
+@api_view(['POST'])
+def generar_token_jwt(request):
     try:
-        user = Users.objects.get(pk=pk_user)
-        
-        if Fiestero.objects.filter(user=user).exists():
-            return Response({
-                'message': 'El usuario es Fiestero',
-                'value': True,
-                'id': Fiestero.objects.get(user=user).pk
-                
-                }, status=status.HTTP_200_OK)
-        elif Discotequero.objects.filter(user=user).exists():
-            return Response({
-                'message': 'El usuario es Discotequero',
-                'value': True
-                }, status=status.HTTP_200_OK)
-        
-        else:
-            return Response({
-                'message': 'El usuario no tiene un tipo de usuario asignado',
-                'value': False
-                }, status=status.HTTP_200_OK)
-
-    except Users.DoesNotExist:
-        return Response({
-            'message': 'Usuario no encontrado o no existe',
-            }, status.HTTP_404_NOT_FOUND)
-
-    
-# API Usuarios
-class UserProfileView(APIView):
-    permission_classes = [IsAuthenticated] 
-    
-    def get(self, request):
-        # Obtener el usuario autenticado
+        # Obtener el usuario autenticado con Google
         user = request.user
-        # Serializar la información del usuario
-        serializer = UserSerializer(user)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-@api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-def credenciales(request):
-    user = request.user  # El usuario que ha iniciado sesión (autenticado con Google)
-    
-    if user.is_authenticated:
-        # Generar tokens para el usuario
+        # Generar los tokens JWT
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-        
-        # Devolver los tokens y el id de usuario (que es el id de Django)
-        return Response({
-            'access_token': access_token,
-            'refresh_token': refresh_token,
-            'user_id': user.id,  # Aquí devuelves el id del usuario de Django
-            'user_type': user.tipo  # El tipo de usuario (si ya está asignado)
-        })
-    
-    return Response({
-        'message': 'El usuario no está autenticado correctamente'
-    }, status=401)
-        
-    
-    
-@api_view(['POST'])
-def seleccion_tipo_usuario(request):
-    print(request.data)
 
+        data = {
+            'access_token': access_token,
+            'refresh_token': str(refresh),
+            'user_id': user.id,
+            'tipo_usuario': user.tipo
+        }
+
+        # Responder con los tokens generados
+        return Response(data, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({'message': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def seleccion_tipo_usuario(request, id_user):
+    """
+    Asigna un tipo de usuario a un usuario recién autenticado (fiestero o discotequero).
+    """
     try:
         # Obtener el usuario
-        user = Users.objects.get(pk=request.data['user_id'])
+        user = Users.objects.get(pk=id_user)
 
         # Comprobar si el tipo ya está definido, si es así, no permitir la actualización
         if user.tipo != 'indefinido':
@@ -174,6 +129,12 @@ def seleccion_tipo_usuario(request):
             identificacion = request.data['identificacion']
             passaporte = request.data['passaporte']
 
+            # Validar identidad_sexo
+            if identidad_genero not in ['M', 'F', 'NB', 'O', 'PND']:
+                return Response({
+                    'message': 'Identidad de género no válida'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             # Crear la instancia de Fiestero
             fiestero_a_crear = Fiestero.objects.create(
                 user=user,
@@ -182,15 +143,13 @@ def seleccion_tipo_usuario(request):
                 pasaporte=passaporte
             )
 
-            fiesteroSerializer = FiesteroSerializer(fiestero_a_crear)
-            
-            # Actualizar el tipo del usuario
+            # Asignar el tipo 'fiestero' al usuario
             user.tipo = 'fiestero'
             user.save()
-
+            
             return Response({
                 'message': 'Usuario Fiestero creado exitosamente',
-                'data': fiesteroSerializer.data
+                'data': {'user_id': user.id, 'tipo_usuario': 'fiestero'}
             }, status=status.HTTP_201_CREATED)
 
         elif tipo_usuario == 'discotequero':
@@ -206,15 +165,13 @@ def seleccion_tipo_usuario(request):
                 digito_verificacion=digito_verificacion,
             )
 
-            discotequeroSerializer = DiscotequeroSerializer(discotequero_a_crear)
-            
-            # Actualizar el tipo del usuario
+            # Asignar el tipo 'discotequero' al usuario
             user.tipo = 'discotequero'
             user.save()
 
             return Response({
                 'message': 'Usuario Discotequero creado exitosamente',
-                'data': discotequeroSerializer.data
+                'data': {'user_id': user.id, 'tipo_usuario': 'discotequero'}
             }, status=status.HTTP_201_CREATED)
 
         else:
@@ -224,5 +181,57 @@ def seleccion_tipo_usuario(request):
 
     except Users.DoesNotExist:
         return Response({
-            'message': 'Usuario no encontrado o no existe'
+            'message': 'Usuario no encontrado, atributos incorrectos o tipo de usuario no válido.'
         }, status=status.HTTP_404_NOT_FOUND)
+
+    
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated] 
+    
+    def get(self, request, id_user):
+        # Obtener el usuario autenticado
+        
+        user = Users.objects.get(pk=id_user)
+        # Serializar la información del usuario
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    def delete(self, request, id_user):
+        try:
+            user = Users.objects.get(pk=id_user)
+            user.delete()
+            return Response({'message': 'Usuario eliminado exitosamente'}, status=status.HTTP_204_NO_CONTENT)
+        except Users.DoesNotExist:
+            return Response({'message': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class TokenRefresco(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, id_user):
+        refresh_token = request.data.get('refresh_token')
+        if not refresh_token:
+            return Response({'detail': 'Refresh token es necesario.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Verificar y decodificar el refresh token
+            refresh = RefreshToken(refresh_token)
+            print(refresh['user_id'])
+            # Verificar que el token corresponde al usuario
+            if refresh['user_id'] != id_user:
+                print(refresh)
+                return Response({'detail': 'El refresh token no corresponde al usuario.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            # Generar nuevos tokens
+            access_token = str(refresh.access_token)
+
+            return Response({
+                'access_token': access_token,
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+    
