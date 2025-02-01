@@ -6,46 +6,87 @@ from .models import Favorito, Fiestero
 from establecimiento.models import Establecimiento
 from .serializer import FavoritotoSerializer
 from django.shortcuts import get_object_or_404
+from rest_framework.views import APIView
 
-class FavoritoViewSet(viewsets.ModelViewSet):
+class FavoritoViewSet(APIView):
     """
-    ViewSet para gestionar la creación y visualización de favoritos.
+    Vista para gestionar los favoritos de un fiestero.
     """
-    queryset = Favorito.objects.all()
-    serializer_class = FavoritotoSerializer
 
-    @transaction.atomic #Con este decorador hacemos garantiazar que si falla algo en el proceso, no se vera en la base de datos información incompleta dado a esto.
-    def create(self, request, *args, **kwargs):
+    def get_fiestero(self, fiestero_id):
+        """Obtiene el fiestero a partir del id"""
+        return get_object_or_404(Fiestero, id=fiestero_id)
+
+    def get_establecimiento(self, establecimiento_id):
+        """Obtiene el establecimiento a partir del id"""
+        return get_object_or_404(Establecimiento, id=establecimiento_id)
+
+    def post(self, request, fiestero_id):
         """
         Crea un nuevo favorito solo si no existe uno previamente para el mismo fiestero y establecimiento.
         """
-
-        # Obtenemos los id de cada entidad relacionada
-        fiestero_id = request.data.get('fiestero')
         establecimiento_id = request.data.get('establecimiento')
 
-        # En dado caso de que no haya algun id o no exista, se debe mandar error
-        if not fiestero_id or not establecimiento_id:
+        if not establecimiento_id:
             return Response(
-                {'detail': 'Debe proporcionar fiestero y establecimiento.'},
+                {'detail': 'Debe proporcionar el id del establecimiento.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        try:
-            # Verificar si los objetos existen
-            fiestero = get_object_or_404(Fiestero, id=fiestero_id)
-            establecimiento = get_object_or_404(Establecimiento, id=establecimiento_id)
-        except:
-            return Response(
-                {'detail': 'Fiestero o establecimiento no encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
 
-        # Se maneja desde esta vista el tema de no crear una relacion fiestero y esablecimeinto en favoritos existente
-        if Favorito.objects.filter(fiestero_id=fiestero_id, establecimiento_id=establecimiento_id).exists():
+        # Obtener fiestero
+        fiestero = self.get_fiestero(fiestero_id)
+
+        # Obtener establecimiento
+        establecimiento = self.get_establecimiento(establecimiento_id)
+
+        # Verificar si ya existe este favorito
+        if Favorito.objects.filter(fiestero=fiestero, establecimiento=establecimiento).exists():
             return Response(
                 {'detail': 'Este establecimiento ya está marcado como favorito por este usuario.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Si no pasa nada, creamos la entidad
-        return super().create(request, *args, **kwargs)
+        # Crear el favorito
+        favorito = Favorito.objects.create(fiestero=fiestero, establecimiento=establecimiento)
+
+        # Serializar el favorito creado
+        serializer = FavoritotoSerializer(favorito)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def get(self, request, fiestero_id):
+        """
+        Lista los favoritos de un fiestero basado en su id que se pasa en la URL.
+        """
+        fiestero = self.get_fiestero(fiestero_id)
+
+        # Obtener favoritos de este fiestero
+        favoritos = Favorito.objects.filter(fiestero=fiestero)
+
+        # Serializar los favoritos
+        serializer = FavoritotoSerializer(favoritos, many=True)
+        return Response(serializer.data)
+
+    def delete(self, request, fiestero_id):
+        """
+        Elimina un favorito basado en el id del fiestero y el id del establecimiento.
+        """
+        establecimiento_id = request.data.get('establecimiento')
+
+        if not establecimiento_id:
+            return Response(
+                {'detail': 'Debe proporcionar el id del establecimiento.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Obtener fiestero
+        fiestero = self.get_fiestero(fiestero_id)
+
+        # Obtener establecimiento
+        establecimiento = self.get_establecimiento(establecimiento_id)
+
+        # Buscar el favorito
+        favorito = get_object_or_404(Favorito, fiestero=fiestero, establecimiento=establecimiento)
+
+        # Eliminar el favorito
+        favorito.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
