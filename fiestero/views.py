@@ -2,9 +2,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import viewsets
 from django.db import transaction
-from .models import Favorito, Fiestero
+from .models import Favorito, Fiestero, FeedBack
 from establecimiento.models import Establecimiento
-from .serializer import FavoritotoSerializer
+from .serializer import FavoritotoSerializer, FeedBackSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 
@@ -90,3 +90,76 @@ class FavoritoViewSet(APIView):
         # Eliminar el favorito
         favorito.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class FeedBackView(APIView):
+    
+    def post(self, request, establecimiento_id):
+        """
+        Crea un nuevo feedback para un establecimiento especificado.
+        """
+        fiestero_id = request.data.get('fiestero')
+        comentario = request.data.get('comentario')
+        calificacion = request.data.get('calificacion')
+
+        if not fiestero_id or not comentario or not calificacion:
+            return Response(
+                {'detail': 'Debe proporcionar fiestero, comentario y calificación.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            fiestero = Fiestero.objects.get(id=fiestero_id)
+            establecimiento = Establecimiento.objects.get(id=establecimiento_id)
+
+            # Verificar si el fiestero ya tiene un feedback para este establecimiento
+            if FeedBack.objects.filter(fiestero=fiestero, establecimiento=establecimiento).exists():
+                return Response(
+                    {'detail': 'El fiestero ya ha dejado un comentario para este establecimiento.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Crear el feedback
+            feedback = FeedBack.objects.create(
+                fiestero=fiestero,
+                establecimiento=establecimiento,
+                comentario=comentario,
+                calificacion=calificacion,
+            )
+
+            # Serializar y devolver el feedback creado
+            serializer = FeedBackSerializer(feedback)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        except Fiestero.DoesNotExist:
+            return Response({'detail': 'Fiestero no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        except Establecimiento.DoesNotExist:
+            return Response({'detail': 'Establecimiento no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, establecimiento_id):
+        """
+        Obtiene todos los feedbacks de un establecimiento específico.
+        """
+        try:
+            establecimiento = Establecimiento.objects.get(id=establecimiento_id)
+            feedbacks = FeedBack.objects.filter(establecimiento=establecimiento)
+            serializer = FeedBackSerializer(feedbacks, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Establecimiento.DoesNotExist:
+            return Response({'detail': 'Establecimiento no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, feedback_id):
+        """
+        Elimina un feedback específico para un establecimiento y un fiestero.
+        """
+        try:
+            feedback = FeedBack.objects.get(id=feedback_id)
+            feedback.delete()
+            return Response({'detail': 'Feedback eliminado exitosamente.'}, status=status.HTTP_204_NO_CONTENT)
+        except FeedBack.DoesNotExist:
+            return Response({'detail': 'Feedback no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)

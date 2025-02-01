@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Favorito, Fiestero
+from .models import Favorito, Fiestero, FeedBack
 
 class FavoritotoSerializer(serializers.ModelSerializer):
     """
@@ -19,3 +19,9 @@ class FiesteroSerializer(serializers.ModelSerializer):
     class Meta:
         model = Fiestero
         fields = '__all__'  # Incluir todos los campos del modelo Fiestero
+
+class FeedBackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FeedBack
+        fields = ['id', 'fiestero', 'establecimiento', 'comentario', 'calificacion', 'fecha']
+
