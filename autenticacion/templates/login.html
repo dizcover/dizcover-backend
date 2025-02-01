@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Autenticación con Google</title>
+    <title>Login</title>
 </head>
+
 <body>
-    {% load socialaccount %}
-    <h2>Google login</h2>
-    <a href="{% provider_login_url 'google' %}">Login con Google</a>
-
-    {% if user.is_authenticated %}
-        <h2>Información del usuario</h2>
-        <p>id: {{ user.pk }}</p>
-        <p>Usuario autenticado: {{ user.nombre_usuario }}</p>
-        <p>Nombre completo: {{ user.nombre_completo }}</p>
-        <p>Email: {{ user.email }}</p>
-        <img src="{{ user.foto_perfil }}" alt="Foto de perfil">
-        <p>El usuario es {{ data.tipo_usuario }}</p>
-        <a href="{% url 'logout' %}">Cerrar sesión</a>
-
-        <h2>Tokens</h2>
-        <p>Token de acceso: {{ data.access_token }}</p>
-        <p>Token de actualización: {{ data.refresh_token }}</p>
+    <h1>Bienvenido, {{ data.nombre_completo }}</h1>
+    <p>Id usuario: {{ data.user_id }}</p>
+    <p>Nombre: {{data.nombre_completo}}</p>
+    <p>Email: {{ data.email }}</p>
+    <p>Token Acceso: {{ data.access_token }}</p>
+    <p>Token de Refresco: {{ data.refresh_token }}</p>  
+    <img src="{{ data.foto_perfil }}" alt="Foto de perfil" width="100" height="100">
+    
+    <!-- Si el tipo del usuario no está definido, mostramos el botón para seleccionar el tipo -->
+    {% if show_selection_button %}
+        <p>El tipo de usuario aún no está definido. Por favor selecciona tu tipo:</p>
+        <button onclick="window.location.href='/autenticacion/seleccion/'">Seleccionar Tipo de Usuario</button>
+    {% else %}
+        <p>Tipo de usuario: {{ data.tipo_usuario }}</p>
     {% endif %}
 </body>
-</html>
 
+</html>

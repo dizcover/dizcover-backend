@@ -2,9 +2,11 @@ from django.urls import path, include
 from rest_framework import routers
 from fiestero import views
 
-router = routers.DefaultRouter()
-router.register(r'', views.FavoritoViewSet)
 
 urlpatterns = [
-    path('favoritos', include(router.urls)),
+    path('<int:fiestero_id>/favoritos/', views.FavoritoViewSet.as_view(), name='Favoritos'),
+
+    path('<int:establecimiento_id>/feedback/', views.FeedBackView.as_view(), name='crear_feedback'),
+    path('feedback/<int:feedback_id>/', views.FeedBackView.as_view(), name='eliminar_feedback'),
+    path('<int:establecimiento_id>/feedbacks/', views.FeedBackView.as_view(), name='obtener_feedbacks'),
 ]

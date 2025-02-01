@@ -4,14 +4,18 @@ from . import views
 urlpatterns = [
     path('login/', views.login_view, name='login'), #Editar backend
     path('logout/', views.logout_view, name='logout'),#Editar backend
+    path('seleccion/', views.seleccion_vista, name='Selección'),
 
 
     # API
-    path('verificacion-tipo-usuario/<int:pk_user>/', views.type_verification_user, name='type_verification_user'), #Implementar en frontend
-    path('seleccion-tipo-usuario/', views.seleccion_tipo_usuario, name='seleccion_tipo_usuario'), #Implemnetar en frontend
+    path('verificacion-tipo-usuario/<int:id_user>', views.verificar_tipo_usuario, name='type_verification_user'),
+    path('seleccion-tipo-usuario/<int:id_user>', views.seleccion_tipo_usuario, name='seleccion_tipo_usuario'),
+    path('credenciales_jwt/', views.generar_token_jwt, name='seleccion_tipo_usuario'),
+    path('usuario/refrescar_token/<int:id_user>', views.TokenRefresco.as_view(), name='refrescar'),
 
-    # API
-    path('usuario', views.UserProfileView.as_view(), name='usuario'),
-    path('usuario/credenciales/', views.credenciales, name='usuario'),
+
+    path('usuario/<int:id_user>', views.UserProfileView.as_view(), name='usuario'),
+
+
 
 ]
