@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from .models import Establecimiento, Coordenada, Horario, ImagenEstablecimiento, HorarioEstablecimiento, Coordenada
+from recomendacion.models import EtiquetaEstablecimiento
 
 class EstablecimientoSerializer(serializers.ModelSerializer):
     """
     Este serializador convierte el modelo 'Establecimiento' a JSON.
     """
     primera_imagen = serializers.SerializerMethodField()
+    etiquetas = serializers.SerializerMethodField()  
 
     class Meta:
         model = Establecimiento
@@ -17,6 +19,18 @@ class EstablecimientoSerializer(serializers.ModelSerializer):
         if primera_imagen:
             return primera_imagen.imagen.url  # Asegúrate de que la imagen tenga la URL
         return None
+    
+    def get_etiquetas(self, obj):
+        """
+        Devuelve los nombres de las etiquetas asociadas al establecimiento.
+        """
+        etiquetas = EtiquetaEstablecimiento.objects.filter(establecimiento=obj)
+        if etiquetas:
+            # Aquí devolvemos los nombres de las etiquetas, no sus IDs
+            return [etiqueta.etiqueta.nombre for etiqueta in etiquetas]
+        return []  # Retorna una lista vacía si no tiene etiquetas
+
+
 
 class ImagenEstablecimientoSerializer(serializers.ModelSerializer):
     class Meta:

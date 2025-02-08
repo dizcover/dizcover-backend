@@ -1,58 +1,47 @@
 from django.db import models
+from establecimiento.models import Establecimiento
+from fiestero.models import Fiestero
 
-# Create your models here.
+class Etiqueta(models.Model):
+    GENERO = 'G'
+    AMBIENTE = 'A'
+    ESPECIAL = 'E'
 
-class EnumGenero(models.TextChoices):
-    REGGAETON = 'Reggaeton'
-    POP = 'Pop'
-    ROCK = 'Rock'
-    ELECTRONICA = 'Electronica'
-    HIPHOP = 'HipHop'
-    SALSA = 'Salsa'
-    MERENGUE = 'Merengue'
-    BACHATA = 'Bachata'
-    VALLENATO = 'Vallenato'
+    TIPO_ETIQUETA_CHOICES = [
+        (GENERO, 'Genero'),
+        (AMBIENTE, 'Ambiente'),
+        (ESPECIAL, 'Especial'),
+    ]
+    
+    nombre = models.CharField(max_length=100, unique=True)  # Nombre de la etiqueta
+    tipo = models.CharField(
+        max_length=1,
+        choices=TIPO_ETIQUETA_CHOICES,
+        default=GENERO
+    )
 
-    # Colocar más géneros musicales
-
-
-class EnumAmbiente(models.TextChoices):
-    DISCO = 'Disco'
-    BAR = 'Bar'
-    KARAOKE = 'Karaoke'
-    TOMAR = 'Tomar'
-
-    # Colocar más ambientes
-
-class EnumEspeciales(models.TextChoices):
-    SWINGER = 'Swinger'
-    LGBTIQ = 'LGBTIQ+'
-
-class Genero(models.Model):
-    etiqueta_genero = models.CharField(max_length=150, choices=EnumGenero.choices)
     def __str__(self):
-        return self.etiqueta_genero
+        return self.nombre
+    
+class EtiquetaEstablecimiento(models.Model):
+    etiqueta = models.ForeignKey(Etiqueta, on_delete=models.CASCADE, related_name='etiquetas')
+    establecimiento = models.ForeignKey(Establecimiento, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{self.etiqueta} - {self.establecimiento}'
+    
+    class Meta:
+        unique_together = ('etiqueta', 'establecimiento')
+
+class EtiquetasFiestero(models.Model):
+    etiqueta = models.ForeignKey(Etiqueta, on_delete=models.CASCADE)
+    fiestero = models.ForeignKey(Fiestero, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{self.etiqueta} - {self.fiestero}'
+    
+    class Meta:
+        unique_together = ('etiqueta', 'fiestero')
+
     
 
-class Ambiente(models.Model):
-    etiqueta_ambiente = models.CharField(max_length=150)
-
-    def __str__(self):
-        return self.etiqueta_ambiente
-
-class ESpeciales(models.Model):
-    etiqueta_especiales = models.CharField(max_length=150)
-
-    def __str__(self):
-        return self.etiqueta_especiales
-    
-
-class Etiquetas(models.Model):
-    genero = models.ForeignKey(Genero, on_delete=models.CASCADE, null=True)
-    ambiente = models.ForeignKey(Ambiente, on_delete=models.CASCADE, null=True)
-    especiales = models.ForeignKey(ESpeciales, on_delete=models.CASCADE, null=True)
-
-    def __str__(self):
-        return f'{self.genero} - {self.ambiente} - {self.especiales}'
-
-    

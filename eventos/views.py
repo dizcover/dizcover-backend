@@ -27,6 +27,27 @@ class EventoViewSet(viewsets.ModelViewSet):
     serializer_class = EventoSerializer
 
 
+# @permission_classes([IsAuthenticated])
+class EventosPorEstablecimientoView(APIView):
+    """
+    Vista para obtener eventos basados en el ID del establecimiento.
+    """
+
+    def get(self, request, pk_establecimiento):
+        """
+        Obtiene los eventos asociados a un establecimiento.
+        """
+        try:
+            eventos = Evento.objects.filter(establecimiento_id=pk_establecimiento)
+            serializer = EventoSerializer(eventos, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+
 # API de imagenes de Eventos
 class ImagenesEventosView(APIView):
     # Recibe el id del Eventos al que se le asociará la imagen

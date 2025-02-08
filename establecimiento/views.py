@@ -8,6 +8,7 @@ from establecimiento.models import Establecimiento, ImagenEstablecimiento, Horar
 from rest_framework.views import APIView
 from .serializer import EstablecimientoSerializer, ImagenEstablecimientoSerializer, HorarioEstablecimientoSerializer, CoordenadaSerializer
 from rest_framework.permissions import IsAuthenticated
+from recomendacion.models import EtiquetaEstablecimiento
 
 
 
@@ -177,12 +178,12 @@ class ImagenesEstablecimientoView(APIView):
                 if imagen and imagen.content_type not in formatos_permitidos:
                     return Response(
                         {'detail': 'Formato de imagen no permitido. Solo se permiten imágenes JPEG, PNG, JPG o WebP.'},
-                        status=status.HTTP_400_BAD_REQUEST
+                        status=status.HTTP_400_BAD_REQUES
                     )
             
-            if imagenes_existentes >= 10 or suma_imgenes_guardas_subidas > 10:
+            if imagenes_existentes >= 5 or suma_imgenes_guardas_subidas > 5:
                 return Response(
-                    {'detail': 'El establecimiento no puede tener más de 10 imágenes.'},
+                    {'detail': 'El establecimiento no puede tener más de 5 imágenes.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
