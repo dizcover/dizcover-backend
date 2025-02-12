@@ -1,22 +1,49 @@
 from rest_framework import serializers
 from .models import Establecimiento, Coordenada, Horario, ImagenEstablecimiento, HorarioEstablecimiento, Coordenada
+from recomendacion.models import EtiquetaEstablecimiento
+from fiestero.models import FeedBack
 
 class EstablecimientoSerializer(serializers.ModelSerializer):
     """
     Este serializador convierte el modelo 'Establecimiento' a JSON.
     """
     primera_imagen = serializers.SerializerMethodField()
+    etiquetas = serializers.SerializerMethodField()  
+    calificacion_promedio = serializers.SerializerMethodField()
 
     class Meta:
         model = Establecimiento
         fields = '__all__'
 
     def get_primera_imagen(self, obj):
-        # Obtener la primera imagen asociada al establecimiento
-        primera_imagen = obj.imagenes.first()  # Relación inversa usando 'imagenes'
+        
+        primera_imagen = obj.imagenes.first()  
         if primera_imagen:
-            return primera_imagen.imagen.url  # Asegúrate de que la imagen tenga la URL
+            return primera_imagen.imagen.url 
         return None
+    
+    def get_etiquetas(self, obj):
+        """
+        Devuelve los nombres de las etiquetas asociadas al establecimiento.
+        """
+        etiquetas = EtiquetaEstablecimiento.objects.filter(establecimiento=obj)
+        if etiquetas:
+           
+            return [etiqueta.etiqueta.nombre for etiqueta in etiquetas]
+        return []  
+    
+    def get_calificacion_promedio(self, obj):
+        """
+        Devuelve el promedio de las calificaciones asociadas al establecimiento.
+        """
+        calificaciones = FeedBack.objects.filter(establecimiento=obj)
+        print(calificaciones)
+        if calificaciones:
+            suma_calificaciones = sum([float(calificacion.calificacion) for calificacion in calificaciones])
+            return round(suma_calificaciones / len(calificaciones), 1)
+        return "Sin calificaciones"
+
+
 
 class ImagenEstablecimientoSerializer(serializers.ModelSerializer):
     class Meta:

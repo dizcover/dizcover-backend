@@ -1,6 +1,6 @@
 from rest_framework import viewsets, status
-from .serializer import EventoSerializer, ImagenEventoSerializer
-from .models import Evento, ImagenEvento
+from .serializer import EventoSerializer, ImagenEventoSerializer, AsientoSerializer
+from .models import Evento, ImagenEvento, Asiento
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -25,6 +25,27 @@ class EventoViewSet(viewsets.ModelViewSet):
     
     queryset = Evento.objects.all()
     serializer_class = EventoSerializer
+
+
+# @permission_classes([IsAuthenticated])
+class EventosPorEstablecimientoView(APIView):
+    """
+    Vista para obtener eventos basados en el ID del establecimiento.
+    """
+
+    def get(self, request, pk_establecimiento):
+        """
+        Obtiene los eventos asociados a un establecimiento.
+        """
+        try:
+            eventos = Evento.objects.filter(establecimiento_id=pk_establecimiento)
+            serializer = EventoSerializer(eventos, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 # API de imagenes de Eventos
@@ -118,3 +139,78 @@ class ImagenesEventosView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
     
+
+class AsientosEventoView(APIView):
+
+    def get(self, request, pk):
+        """
+        Obtiene los asientos asociados a un evento.
+        """
+        try:
+            evento = get_object_or_404(Evento, id=pk)
+            asientos = Asiento.objects.filter(evento=evento)
+            serializer = AsientoSerializer(asientos, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def post(self, request, pk):
+        """
+        Crea un nuevo asiento asociado a un evento.
+        """
+        try:
+            evento = get_object_or_404(Evento, id=pk)
+            asientos_existentes = Asiento.objects.filter(evento=evento).count()
+            if asientos_existentes >= 5:
+                return Response(
+                    {'detail': 'El evento no puede tener más de 5 asientos.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            asiento = Asiento.objects.create(evento=evento, **request.data)
+            serializer = AsientoSerializer(asiento)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+    
+    def put(self, request, pk):
+        """
+        Actualiza un asiento asociado a un evento.
+        """
+        try:
+            asiento = get_object_or_404(Asiento, id=pk)
+            serializer = AsientoSerializer(asiento, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def delete(self, request, pk):
+        """
+        Elimina un asiento asociado a un evento.
+        """
+        try:
+            asiento = get_object_or_404(Asiento, id=pk)
+            asiento.delete()
+            return Response(
+                {'detail': 'Asiento eliminado exitosamente.'},
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            return Response(
+                {'Error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )   

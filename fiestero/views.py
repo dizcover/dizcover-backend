@@ -7,6 +7,7 @@ from establecimiento.models import Establecimiento
 from .serializer import FavoritotoSerializer, FeedBackSerializer
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 
 class FavoritoViewSet(APIView):
     """
@@ -90,6 +91,18 @@ class FavoritoViewSet(APIView):
         # Eliminar el favorito
         favorito.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def verificar_favorito_establecimiento(request, fiestero_id, establecimiento_id):
+    """
+    Verifica si un establecimiento es favorito de un fiestero.
+    """
+    fiestero = get_object_or_404(Fiestero, id=fiestero_id)
+    establecimiento = get_object_or_404(Establecimiento, id=establecimiento_id)
+
+    es_favorito = Favorito.objects.filter(fiestero=fiestero, establecimiento=establecimiento).exists()
+
+    return Response({'es_favorito': es_favorito}, status=status.HTTP_200_OK)
 
 class FeedBackView(APIView):
     

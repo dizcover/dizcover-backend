@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/discotequero/', include('discotequero.urls')),
     path('api/establecimiento/', include('establecimiento.urls')),
     path('api/fiestero/', include('fiestero.urls')),
+    path('api/recomendacion/', include('recomendacion.urls')),
     path('docs/', include_docs_urls(title='Dizcover API Documentation')),
 
     # path('docs/', include_docs_urls(title='Dizcover API Documentation')),

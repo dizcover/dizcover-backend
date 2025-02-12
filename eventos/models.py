@@ -78,3 +78,13 @@ class ImagenEvento(models.Model):
 
         # Retornar la URL del archivo en S3
         return webp_key
+
+class Asiento(models.Model):
+
+    evento = models.ForeignKey('Evento', on_delete=models.CASCADE, related_name='asientos')
+    nombre = models.CharField(null=False, blank=False, max_length=100)
+    precio = models.DecimalField(max_digits=10, decimal_places=2, null=False, blank=False)  
+    cupos = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.precio} COP - {self.cupos} cupos"

@@ -34,7 +34,7 @@ ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
-SITE_ID = 2
+SITE_ID = 3
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -209,6 +209,7 @@ AUTHENTICATION_BACKENDS = (
 
 LOGIN_REDIRECT_URL = '/autenticacion/login'
 LOGOUT_REDIRECT_URL = '/autenticacion/login'
+SOCIALACCOUNT_LOGIN_ON_GET = True
 ACCOUNT_USER_MODEL_USERNAME_FIELD = 'nombre_usuario'
 ACCOUNT_USERNAME_REQUIRED = True  # Cambia a False si no quieres usar nombre_usuario
 ACCOUNT_AUTHENTICATION_METHOD = 'username'  # Puede ser 'email' si prefieres autenticación por correo
