@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Evento, ImagenEvento
+from .models import Evento, ImagenEvento, Asiento
 
 class EventoSerializer(serializers.ModelSerializer):
     """
@@ -23,4 +23,10 @@ class EventoSerializer(serializers.ModelSerializer):
 class ImagenEventoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ImagenEvento
+        fields = '__all__'
+
+
+class AsientoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Asiento
         fields = '__all__'
